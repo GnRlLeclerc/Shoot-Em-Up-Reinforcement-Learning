@@ -8,4 +8,7 @@ class GameSettings:
     """Simple class to hold game settings"""
 
     # Enemy entity speed per step
-    enemy_speed: float = 1.0
+    enemy_speed: float = 0.1
+
+    # Player entity speed per step
+    player_speed: float = 0.1

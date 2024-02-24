@@ -85,6 +85,9 @@ class Launcher:
                     actions.append(PlayerAction.MOVE_DOWN)
 
             # Update game state
+            self.environment.step(actions)
+
+            # Render the game
             window.fill(Color.BLACK)
 
             if screen == Screen.TITLE:

@@ -1,9 +1,12 @@
 """This module defines the environment class, that holds all information about the current game state."""
 
+import numpy as np
+
 from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.entities.player_entity import PlayerEntity
 from game.backend.game_settings import GameSettings
 from game.backend.physics.bounding_box import BoundingBox2D
+from game.backend.physics.math_utils import normalize
 from game.backend.player_actions import PlayerAction
 
 
@@ -47,8 +50,8 @@ class Environment:
             entity.step(self)
 
         # Update the player position
-        print(actions)
-        # TODO: do the thing, depending on actions. Update the model, etcL
+        self.handle_player_actions(actions)
+        self.player.step(self)
         self.player.object.position = self.game_map.clip_inside(
             self.player.object.position
         )
@@ -65,3 +68,30 @@ class Environment:
         # Remove the entities in O(n) time
         for entity in self.delete_entities:
             self.entities.remove(entity)
+
+    def handle_player_actions(self, actions: list[PlayerAction]) -> None:
+        """Handles the player actions and compute the new player state.
+
+        Movement actions are combined into a single direction vector that is normalized before being
+        multiplied by the player speed.
+        """
+        velocity = np.array([0, 0])
+
+        for action in actions:
+            if action == PlayerAction.MOVE_UP:
+                velocity[1] += 1
+            elif action == PlayerAction.MOVE_DOWN:
+                velocity[1] -= 1
+            elif action == PlayerAction.MOVE_LEFT:
+                velocity[0] -= 1
+            elif action == PlayerAction.MOVE_RIGHT:
+                velocity[0] += 1
+            elif action == PlayerAction.SHOOT:
+                pass  # TODO: handle shooting and cooldown. Start with one weapon, but we can add more later
+
+        if np.linalg.norm(velocity) > 0:
+            self.player.object.velocity = (
+                normalize(velocity) * self.game_settings.player_speed
+            )
+        else:
+            self.player.object.velocity = velocity

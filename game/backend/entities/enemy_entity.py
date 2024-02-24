@@ -20,4 +20,4 @@ class EnemyEntity(EntityBase):
         self.object.velocity = player_direction * env.game_settings.enemy_speed
 
         # Update the enemy position
-        self.object.step(env.step_seconds)
+        super().step(env)
