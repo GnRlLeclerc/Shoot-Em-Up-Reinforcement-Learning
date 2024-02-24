@@ -61,14 +61,6 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
         # Compute map offsets
         self.map_offsets = np.zeros(2, dtype=np.int64)
 
-        # Compute map rectangle
-        self.map_rect = pygame.Rect(
-            float(self.map_offsets[0]),
-            float(window_settings.height - self.map_offsets[1]),  # Invert y-axis
-            environment.game_map.width * self.scale,
-            environment.game_map.height * self.scale,
-        )
-
         if x_factor < y_factor:
             # There is extra space on the y-axis
             self.map_offsets[1] = (
@@ -84,6 +76,14 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
         self.entity_offsets = np.copy(self.map_offsets)
         lower_map_corner = environment.game_map.center - environment.game_map.half_size
         self.entity_offsets -= (lower_map_corner * self.scale).astype(np.int64)
+
+        # Compute map rectangle
+        self.map_rect = pygame.Rect(
+            float(self.map_offsets[0]),
+            float(self.map_offsets[1]),
+            environment.game_map.width * self.scale,
+            environment.game_map.height * self.scale,
+        )
 
         # Register rendering functions
         self.render_lookup = {
@@ -108,7 +108,9 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
             self.screen,
             Color.RED,
             (
-                *self._convert_position(player.object.position),
+                *self._convert_position(
+                    player.object.position, self.window_settings.player_size
+                ),
                 self.window_settings.player_size,
                 self.window_settings.player_size,
             ),
@@ -131,9 +133,16 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
         )
 
     def _convert_position(
-        self, position: npt.NDArray[np.float64]
+        self, position: npt.NDArray[np.float64], size: float = 0
     ) -> npt.NDArray[np.int64]:
-        """Convert a position from the game map to the screen."""
+        """Convert a position from the game map to the screen.
+
+        Params:
+        ------
+        * position: npt.NDArray[np.float64] - The position on the game map to be converted.
+        * size: float - The size of the entity to be displayed, the half of which will be subtracted from the position.
+        """
         position = position * self.scale + self.entity_offsets
         position[1] = self.window_settings.height - position[1]
+        position -= size * 0.5
         return position.astype(np.int64)
