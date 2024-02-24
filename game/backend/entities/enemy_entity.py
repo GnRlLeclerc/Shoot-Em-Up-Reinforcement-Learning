@@ -1,7 +1,6 @@
 """The basic enemy entity"""
 
-from base_entity import EntityBase, EntityType
-
+from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.environment import Environment
 from game.backend.physics.math_utils import normalize
 

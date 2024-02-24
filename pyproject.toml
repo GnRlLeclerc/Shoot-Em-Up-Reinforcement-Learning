@@ -27,6 +27,10 @@ isort = "^5.13.2"
 [tool.poetry.group.backend.dependencies]
 numpy = "^1.26.4"
 
+
+[tool.poetry.group.frontend.dependencies]
+pygame = "^2.5.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -45,6 +49,11 @@ disable = "W0201"
 [tool.pylint."R0903"]
 # Disable "too few public methods" because we might define or inherit with classes that have < 2 public methods
 disable = "R0903"
+
+[tool.pylint."E1101"]
+# Disable "module xxx has no member yyy" because pylint does not detect pygame members correctly.
+disable = "E1101"
+
 
 [tool.pylint.main]
 # Analyse import fallback blocks. This can be used to support both Python 2 and 3
