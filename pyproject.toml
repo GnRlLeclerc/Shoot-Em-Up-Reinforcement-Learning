@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poe.tasks]
 # Script shortcuts. Run with "poe <name>"
 sort-imports = "isort scripts/* game/*"
+sort-check = "isort --check-only scripts/* game/*"
 format-write = "black --exclude .venv ."
 format-check = "black --check --exclude .venv ."
 lint = "pylint game scripts"

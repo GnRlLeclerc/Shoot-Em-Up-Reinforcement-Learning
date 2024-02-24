@@ -1,8 +1,5 @@
 image: python:3.12-bookworm
 
-variables:
-  IMAGE_TAG: registry.binets.fr/jtx/site-jtx
-
 stages:
   - test # Perform Lint and Format checks on the code
 
@@ -22,3 +19,9 @@ format:
   stage: test
   script:
     - poetry run poe format-check
+
+# Check import order with isort
+isort:
+  stage: test
+  script:
+    - poetry run poe isort-check
