@@ -8,6 +8,7 @@ from game.backend.environment import Environment
 from game.backend.game_settings import GameSettings
 from game.backend.player_actions import PlayerAction
 from game.frontend.display.colors import Color
+from game.frontend.display.coordinates_converter import CoordinatesConverter
 from game.frontend.display.renderer import Renderer
 from game.frontend.display.screens import Screen
 from game.frontend.window_settings import WindowSettings
@@ -45,7 +46,8 @@ class Launcher:
         )
 
         # Initialize renderer
-        renderer = Renderer(self.environment, self.window_settings, window)
+        converter = CoordinatesConverter(self.environment, self.window_settings)
+        renderer = Renderer(converter, window)
 
         # Initialize game state
         screen = Screen.TITLE
@@ -84,8 +86,14 @@ class Launcher:
                 if keys[pygame.K_DOWN]:
                     actions.append(PlayerAction.MOVE_DOWN)
 
-            # Update game state
-            self.environment.step(actions)
+            if screen == Screen.GAME:
+                # Orient the player in the direction of the mouse
+                mouse_pos = pygame.mouse.get_pos()
+                game_pos = converter.to_game_coords(mouse_pos)
+                self.environment.player.look_at(game_pos)
+
+                # Update game state
+                self.environment.step(actions)
 
             # Render the game
             window.fill(Color.BLACK)

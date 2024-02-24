@@ -60,6 +60,13 @@ You can then run scripts with:
 python scripts/example.py  # Replace with any script
 ```
 
+Launch the game with:
+```bash
+python scripts/run_game.py
+```
+
+You can control the player with the arrow keys. It will look in the direction of your mouse.
+
 ### Build tools
 This project uses [`Black`](https://pypi.org/project/black/) for code formatting, [`PyLint`](https://pypi.org/project/pylint/) 
 for linting and [`isort`](https://pypi.org/project/isort/) for import statements sorting.

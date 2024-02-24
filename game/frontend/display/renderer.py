@@ -3,18 +3,16 @@
 
 from typing import Callable
 
-import numpy as np
-import numpy.typing as npt
 import pygame
-from pygame import Surface, SurfaceType
+from pygame import Surface, SurfaceType, Rect
 
 from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.entities.bullet_entity import BulletEntity
 from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.entities.player_entity import PlayerEntity
-from game.backend.environment import Environment
 from game.frontend.display.colors import Color
-from game.frontend.window_settings import WindowSettings
+from game.frontend.display.coordinates_converter import CoordinatesConverter
+from game.frontend.display.render_utils import draw_rotated_rect
 
 
 class Renderer:  # pylint: disable=too-many-instance-attributes
@@ -30,60 +28,17 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
     # Rendering function lookup
     render_lookup: dict[EntityType, Callable[[any], None] | None]
 
-    # Map rectangle
-    map_rect: pygame.Rect
-
-    # Scaling factors and offsets
-    scale: float
-    # The offsets represent an amount of pixels.
-    map_offsets: npt.NDArray[np.int64]
-    entity_offsets: npt.NDArray[np.int64]
-
-    # Store window settings (access player size, etc.)
-    window_settings: WindowSettings
+    # Converter helper for the coordinates
+    converter: CoordinatesConverter
 
     def __init__(
         self,
-        environment: Environment,
-        window_settings: WindowSettings,
+        converter: CoordinatesConverter,
         screen: Surface | SurfaceType,
     ) -> None:
         """Initializes the entity renderer with default settings."""
         self.screen = screen
-        self.window_settings = window_settings
-
-        # Compute game map bounds
-        x_factor = window_settings.width / environment.game_map.width
-        y_factor = window_settings.height / environment.game_map.height
-        # Take the minimum in order to make the map fit in the screen
-        self.scale = min(x_factor, y_factor)
-
-        # Compute map offsets
-        self.map_offsets = np.zeros(2, dtype=np.int64)
-
-        if x_factor < y_factor:
-            # There is extra space on the y-axis
-            self.map_offsets[1] = (
-                window_settings.height - environment.game_map.height * self.scale
-            ) * 0.5
-        else:
-            # There is extra space on the x-axis
-            self.map_offsets[0] = (
-                window_settings.width - environment.game_map.width * self.scale
-            ) * 0.5
-
-        # Compute the entity display offsets
-        self.entity_offsets = np.copy(self.map_offsets)
-        lower_map_corner = environment.game_map.center - environment.game_map.half_size
-        self.entity_offsets -= (lower_map_corner * self.scale).astype(np.int64)
-
-        # Compute map rectangle
-        self.map_rect = pygame.Rect(
-            float(self.map_offsets[0]),
-            float(self.map_offsets[1]),
-            environment.game_map.width * self.scale,
-            environment.game_map.height * self.scale,
-        )
+        self.converter = converter
 
         # Register rendering functions
         self.render_lookup = {
@@ -103,17 +58,17 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
 
     def render_player(self, player: PlayerEntity) -> None:
         """Render the player entity on screen."""
-        # Render player
-        pygame.draw.rect(
+        player_size = self.converter.window_settings.player_size
+
+        draw_rotated_rect(
             self.screen,
             Color.RED,
-            (
-                *self._convert_position(
-                    player.object.position, self.window_settings.player_size
-                ),
-                self.window_settings.player_size,
-                self.window_settings.player_size,
+            Rect(
+                *self.converter.to_screen_coords(player.object.position, player_size),
+                player_size,
+                player_size,
             ),
+            player.angle,
         )
 
     def render_bullet(self, bullet: BulletEntity) -> None:
@@ -129,20 +84,5 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
         pygame.draw.rect(
             self.screen,
             Color.GREEN,
-            self.map_rect,
+            self.converter.map_rect,
         )
-
-    def _convert_position(
-        self, position: npt.NDArray[np.float64], size: float = 0
-    ) -> npt.NDArray[np.int64]:
-        """Convert a position from the game map to the screen.
-
-        Params:
-        ------
-        * position: npt.NDArray[np.float64] - The position on the game map to be converted.
-        * size: float - The size of the entity to be displayed, the half of which will be subtracted from the position.
-        """
-        position = position * self.scale + self.entity_offsets
-        position[1] = self.window_settings.height - position[1]
-        position -= size * 0.5
-        return position.astype(np.int64)
