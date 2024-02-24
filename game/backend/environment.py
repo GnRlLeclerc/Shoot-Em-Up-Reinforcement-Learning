@@ -4,6 +4,7 @@ from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.entities.player_entity import PlayerEntity
 from game.backend.game_settings import GameSettings
 from game.backend.physics.bounding_box import BoundingBox2D
+from game.backend.player_actions import PlayerAction
 
 
 class Environment:
@@ -25,7 +26,7 @@ class Environment:
     # Game settings
     game_settings: GameSettings
 
-    def __init__(self) -> None:
+    def __init__(self, game_settings: GameSettings | None = None) -> None:
         """Instantiates the environment"""
         self.player = PlayerEntity()
         self.entities = set()
@@ -34,9 +35,11 @@ class Environment:
 
         # Create an empty game map
         self.game_map = BoundingBox2D(2, 2, 0, 0)
-        self.game_settings = GameSettings()
+        if game_settings is None:
+            game_settings = GameSettings()
+        self.game_settings = game_settings
 
-    def step(self) -> None:
+    def step(self, actions: list[PlayerAction]) -> None:
         """Updates the environment state"""
 
         # Update all entities
@@ -44,7 +47,8 @@ class Environment:
             entity.step(self)
 
         # Update the player position
-        # TODO
+        print(actions)
+        # TODO: do the thing, depending on actions. Update the model, etcL
         self.player.object.position = self.game_map.clip_inside(
             self.player.object.position
         )

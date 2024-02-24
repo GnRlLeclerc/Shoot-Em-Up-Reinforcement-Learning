@@ -24,6 +24,7 @@ accessed [here](#build-tools).
 │
 └── scripts   # Ready-to-run scripts
     ├── example.py         # Example script
+    ├── run_game.py        # Run the game in order to play it yourself
     └── setup.py           # Python PATH setup to import at the top of each script
 ```
 
