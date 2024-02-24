@@ -45,5 +45,6 @@ class EntityBase(ABC):
         """Returns the entity type code"""
         return self.type.value
 
-    def step(self, _: "Environment") -> None:
+    def step(self, env: "Environment") -> None:
         """Updates the entity state based on the current environment state"""
+        self.object.step(env.step_seconds)

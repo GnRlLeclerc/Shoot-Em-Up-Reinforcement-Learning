@@ -10,5 +10,3 @@ class PlayerEntity(EntityBase):
     def type(self) -> EntityType:
         """Returns the entity type (readonly)"""
         return EntityType.PLAYER
-
-    # TODO: handle player inputs from pygame (make it compatible with RL)
