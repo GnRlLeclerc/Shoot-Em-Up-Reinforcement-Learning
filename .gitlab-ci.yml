@@ -1,0 +1,24 @@
+image: python:3.12-bookworm
+
+variables:
+  IMAGE_TAG: registry.binets.fr/jtx/site-jtx
+
+stages:
+  - test # Perform Lint and Format checks on the code
+
+# Always setup poetry
+before_script:
+  - pip install poetry
+  - poetry install
+
+# Linting python code with the Pylance linter
+lint:
+  stage: test
+  script:
+    - poetry run poe lint
+
+# Check python format style with Black
+format:
+  stage: test
+  script:
+    - poetry run poe format-check

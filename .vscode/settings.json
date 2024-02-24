@@ -1,0 +1,14 @@
+{
+  // Generic settings :
+  "editor.formatOnSave": true, // Format files on save
+  "editor.codeActionsOnSave": {
+    // Organize imports on save
+    "source.organizeImports": "explicit"
+  },
+
+  // Python
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter", // Use Black formatter for python
+    "editor.formatOnType": true
+  }
+}
