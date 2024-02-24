@@ -1,7 +1,7 @@
 """Utility functions for rendering things"""
 
-from pygame import Surface, SurfaceType, Rect
 import pygame
+from pygame import Rect, Surface, SurfaceType
 
 
 def draw_rotated_rect(

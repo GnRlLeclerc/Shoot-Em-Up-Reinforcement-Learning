@@ -4,7 +4,7 @@
 from typing import Callable
 
 import pygame
-from pygame import Surface, SurfaceType, Rect
+from pygame import Rect, Surface, SurfaceType
 
 from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.entities.bullet_entity import BulletEntity
