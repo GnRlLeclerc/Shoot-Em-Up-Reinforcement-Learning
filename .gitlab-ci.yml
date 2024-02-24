@@ -21,7 +21,7 @@ format:
     - poetry run poe format-check
 
 # Check import order with isort
-isort:
+sort-import:
   stage: test
   script:
-    - poetry run poe isort-check
+    - poetry run poe sort-check
