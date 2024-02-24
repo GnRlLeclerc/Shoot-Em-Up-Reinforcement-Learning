@@ -23,6 +23,10 @@ poethepoet = "^0.24.4"
 black = "^24.2.0"
 isort = "^5.13.2"
 
+
+[tool.poetry.group.backend.dependencies]
+numpy = "^1.26.4"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -33,6 +37,14 @@ profile = "black"
 [tool.pylint."E0401"]
 # Disable "unable to import" statement because we do some path tricks to make scripts able to import our "game" module
 disable = "E0401"
+
+[tool.pylint."W0201"]
+# Disable "attribute defined outside __init__" because we might inherit from abstract class without explicitely calling the constructor
+disable = "W0201"
+
+[tool.pylint."R0903"]
+# Disable "too few public methods" because we might define or inherit with classes that have < 2 public methods
+disable = "R0903"
 
 [tool.pylint.main]
 # Analyse import fallback blocks. This can be used to support both Python 2 and 3
@@ -98,7 +110,7 @@ ignore-patterns = ["^\\.#"]
 # Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
 # number of processors available to use, and will cap the count on Windows to
 # avoid hangs.
-jobs = 1
+jobs = 0
 
 # Control the amount of potential inferred values when inferring a single object.
 # This can help the performance when dealing with large functions or complex,
@@ -416,7 +428,7 @@ timeout-methods = ["requests.api.delete", "requests.api.get", "requests.api.head
 
 [tool.pylint.miscellaneous]
 # List of note tags to take in consideration, separated by a comma.
-notes = ["FIXME", "XXX", "TODO"]
+notes = [] # ["FIXME", "XXX", "TODO"]
 
 # Regular expression of note tags to take in consideration.
 # notes-rgx =
