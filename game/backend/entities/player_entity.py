@@ -27,10 +27,14 @@ class PlayerEntity(EntityBase):
         self.direction = normalize(position - self.object.position)
 
     @property
-    def angle(self) -> float:
+    def deg_angle(self) -> float:
         """Rotation angle in degrees, in the trigonometric direction.
         An angle of 0° means that the player is looking to the top
         """
 
-        angle = rad_2_deg(rotation_angle(np.array([0, 1]), self.direction))
-        return angle
+        return rad_2_deg(rotation_angle(np.array([0, 1]), self.direction))
+
+    @property
+    def rad_angle(self) -> float:
+        """Orientation of the player in radians, within [-2pi, 2pi]"""
+        return rotation_angle(np.array([0, 1]), self.direction)

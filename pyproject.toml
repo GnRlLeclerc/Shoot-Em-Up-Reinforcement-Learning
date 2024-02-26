@@ -30,6 +30,11 @@ numpy = "^1.26.4"
 
 [tool.poetry.group.frontend.dependencies]
 pygame = "^2.5.2"
+numpy = "^1.26.4"
+
+
+[tool.poetry.group.torch.dependencies]
+torchrl = "^0.3.0"
 
 [build-system]
 requires = ["poetry-core"]

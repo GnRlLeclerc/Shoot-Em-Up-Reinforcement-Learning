@@ -68,7 +68,7 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
                 player_size,
                 player_size,
             ),
-            player.angle,
+            player.deg_angle,
         )
 
     def render_bullet(self, bullet: BulletEntity) -> None:

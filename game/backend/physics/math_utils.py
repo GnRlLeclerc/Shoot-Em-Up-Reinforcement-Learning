@@ -8,6 +8,11 @@ def normalize(array: np.ndarray) -> np.ndarray:
     return array / np.linalg.norm(array)
 
 
+def normalize_rad_angle(angle: float) -> float:
+    """Normalize an angle in radians to be in the range [-pi, pi]"""
+    return (angle + np.pi) % (2 * np.pi) - np.pi
+
+
 def rotation_angle(vec1: np.ndarray, vec2: np.ndarray) -> float:
     """Get the rotation angle in radians from vec1 to vec2.
     This function assumes that the input vectors were normalized
