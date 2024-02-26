@@ -36,11 +36,14 @@ class Environment:
         self.delete_entities = []
         self.step_seconds = 0.1
 
-        # Create an empty game map
-        self.game_map = BoundingBox2D(2, 2, 0, 0)
         if game_settings is None:
             game_settings = GameSettings()
         self.game_settings = game_settings
+
+        # Create an empty game map
+        self.game_map = BoundingBox2D(
+            game_settings.map_size, game_settings.map_size, 0, 0
+        )
 
     def step(self, actions: list[PlayerAction]) -> None:
         """Updates the environment state"""
