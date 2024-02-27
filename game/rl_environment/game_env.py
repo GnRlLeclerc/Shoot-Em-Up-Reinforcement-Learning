@@ -12,6 +12,7 @@ from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.environment import Environment
 from game.backend.game_settings import GameSettings
 from game.rl_environment.game_tensor_converter import GameTensorConverter
+from game.rl_environment.rewards.base_rewards import BaseRewards
 
 
 class GameEnv(EnvBase):
@@ -19,16 +20,19 @@ class GameEnv(EnvBase):
 
     environments: list[Environment]
     converter: GameTensorConverter
+    rewards: BaseRewards
 
     def __init__(
         self,
         game_settings: GameSettings | None = None,
+        rewards: BaseRewards | None = None,
         device: DEVICE_TYPING = "cpu",
         batch_size: int = 1,
     ) -> None:
         """Instantiates a torchrl environment wrapper for the game environment.
 
         :param game_settings: Game settings shared by all environments.
+        :param rewards: Reward module to use for the training reward computations.
         :param device: Device to use for the training (cpu or gpu).
         :param batch_size: Number of parallel environments.
         """
@@ -41,6 +45,9 @@ class GameEnv(EnvBase):
         # Initialize all game environments
         self.environments = [Environment(game_settings) for _ in range(batch_size)]
         self.converter = GameTensorConverter(game_settings)
+
+        # TODO: if rewards are None, use a default reward module
+        self.rewards = rewards
 
     def _reset(
         self,
@@ -70,10 +77,7 @@ class GameEnv(EnvBase):
             env.step([])
 
         step_output = self.get_state()
-
-        # TODO: add the rewards on top of this
-        rewards = torch.zeros(self.batch_size)
-        step_output["reward"] = rewards
+        step_output["reward"] = self.rewards.rewards(self.environments)
 
         return step_output.to(self.device)
 

@@ -21,11 +21,8 @@ class GameTensorConverter:
     max_position: float
     max_velocity: float
 
-    def __init__(self, game_settings: GameSettings | None = None):
+    def __init__(self, game_settings: GameSettings):
         """Instantiate a new converter for a game environment"""
-
-        if game_settings is None:
-            game_settings = GameSettings()
 
         self.game_settings = game_settings
 
