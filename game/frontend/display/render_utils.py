@@ -19,7 +19,6 @@ def draw_rotated_rect(
     * rect: the rectangle to be rotated
     * angle: the rotation angle in degrees (°). Rotation direction is trigonometric
     """
-    # BUG: ya un truc bizarre
 
     # Create a new surface with the same size as the rectangle
     rect_surf = Surface((rect.width, rect.height), pygame.SRCALPHA)

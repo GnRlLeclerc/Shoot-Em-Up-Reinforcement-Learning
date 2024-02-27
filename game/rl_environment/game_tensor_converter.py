@@ -5,6 +5,7 @@ Convert game observations and states to scaled tensors, and back.
 import numpy as np
 import torch
 
+from game.backend.entities.bullet_entity import BulletEntity
 from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.entities.player_entity import PlayerEntity
 from game.backend.game_settings import GameSettings
@@ -61,14 +62,38 @@ class GameTensorConverter:
         * y position
         * x speed
         * y speed
+        * presence: when sharing tensors in batched environments, we may have to pad. This value serves as an indicator.
 
         All positions and velocities are scaled to [-1, 1] according to the game settings.
 
-        :returns: A tensor observation of the enemy entity. Shape is (4,).
+        :returns: A tensor observation of the enemy entity. Shape is (5,).
         """
         return torch.tensor(
             [
                 *(enemy.object.position / self.max_position),
                 *(enemy.object.velocity / self.max_velocity),
+                1.0,
+            ]
+        )
+
+    def bullet_to_tensor(self, bullet: BulletEntity) -> torch.Tensor:
+        """Converts a bullet entity to a tensor observation.
+
+        The conversion to a tensor is done in this format:
+        * x position
+        * y position
+        * x speed
+        * y speed
+        * presence: when sharing tensors in batched environments, we may have to pad. This value serves as an indicator.
+
+        All positions and velocities are scaled to [-1, 1] according to the game settings.
+
+        :returns: A tensor observation of the bullet entity. Shape is (5,).
+        """
+        return torch.tensor(
+            [
+                *(bullet.object.position / self.max_position),
+                *(bullet.object.position / self.max_velocity),
+                1.0,
             ]
         )

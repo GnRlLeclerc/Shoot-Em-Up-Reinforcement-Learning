@@ -29,12 +29,17 @@ class Environment:
     # Game settings
     game_settings: GameSettings
 
+    # Game flags and temporary values
+    # Done flag: identify when the game is over
+    done: bool
+
     def __init__(self, game_settings: GameSettings | None = None) -> None:
         """Instantiates the environment"""
         self.player = PlayerEntity()
         self.entities = set()
         self.delete_entities = []
         self.step_seconds = 0.1
+        self.done = False
 
         if game_settings is None:
             game_settings = GameSettings()
@@ -98,3 +103,30 @@ class Environment:
             )
         else:
             self.player.object.velocity = velocity
+
+    def reset(self) -> None:
+        """Resets the environment to its initial state"""
+        self.player = PlayerEntity()
+        self.entities.clear()
+        self.delete_entities.clear()
+        self.done = False
+
+    def get_entity_counts(self) -> dict[EntityType, int]:
+        """Returns the count of each entity type in the environment"""
+        counts = {entity_type: 0 for entity_type in EntityType}
+        for entity in self.entities:
+            counts[entity.type] += 1
+        return counts
+
+    @staticmethod
+    def get_max_entity_count(environments: list["Environment"]):
+        """Get the maximum entity count among all environments for tensor batching"""
+
+        max_counts = {entity_type: 0 for entity_type in EntityType}
+        for env in environments:
+            counts = env.get_entity_counts()
+            for entity_type in EntityType:
+                max_counts[entity_type] = max(
+                    max_counts[entity_type], counts[entity_type]
+                )
+        return max_counts
