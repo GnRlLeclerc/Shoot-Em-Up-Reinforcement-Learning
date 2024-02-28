@@ -10,4 +10,5 @@ if __name__ == "__main__":
     game_env = GameEnv()
 
     dummy = TensorDict({}, batch_size=1, device="cpu")
-    game_env.step(dummy)
+    result = game_env.step(dummy)
+    print(result)

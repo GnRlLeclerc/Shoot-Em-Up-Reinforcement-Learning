@@ -13,6 +13,7 @@ from game.backend.environment import Environment
 from game.backend.game_settings import GameSettings
 from game.rl_environment.game_tensor_converter import GameTensorConverter
 from game.rl_environment.rewards.base_rewards import BaseRewards
+from game.rl_environment.rewards.default_rewards import DefaultRewards
 
 
 class GameEnv(EnvBase):
@@ -46,7 +47,9 @@ class GameEnv(EnvBase):
         self.environments = [Environment(game_settings) for _ in range(batch_size)]
         self.converter = GameTensorConverter(game_settings)
 
-        # TODO: if rewards are None, use a default reward module
+        # Initialize rewards
+        if rewards is None:
+            rewards = DefaultRewards(game_settings)
         self.rewards = rewards
 
     def _reset(
@@ -72,7 +75,7 @@ class GameEnv(EnvBase):
         """Do a step in the environment and return the next state and reward."""
 
         # Step all environments
-        for i, env in enumerate(self.environments):
+        for _, env in enumerate(self.environments):
             # TODO: get actions from the input tensordict. Specify format in the class docstring.
             env.step([])
 

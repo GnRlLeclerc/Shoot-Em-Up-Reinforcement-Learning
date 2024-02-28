@@ -30,3 +30,19 @@ def rad_2_deg(rad: float) -> float:
 def deg_2_rad(deg: float) -> float:
     """Converts degrees to radians"""
     return deg * np.pi / 180
+
+
+def sigmoid(x: float) -> float:
+    """Sigmoid function"""
+    return 1 / (1 + np.exp(-x))
+
+
+def interval_map(
+    x: float | np.ndarray,
+    in_min: float = 0,
+    in_max: float = 1,
+    out_min: float = 0,
+    out_max: float = 1,
+) -> float | np.ndarray:
+    """Map the input values from [in_min, in_max] to [out_min, out_max]"""
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
