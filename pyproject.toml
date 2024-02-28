@@ -1,5 +1,6 @@
 [tool.poetry]
 name = "shoot-em-up-rl"
+package-mode = false
 version = "0.1.0"
 description = "Simple Shoot'Em Up game for reinforcement learning purposes"
 authors = ["Thibaut de Saivre <thibaut.de-saivre@polytechnique.edu>", "Eyal Benaroche <eyal.benaroche@polytechnique.edu>"]

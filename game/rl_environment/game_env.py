@@ -54,8 +54,8 @@ class GameEnv(EnvBase):
 
     def _reset(
         self,
-        tensordict: TensorDictBase | None = None,
-        **kwargs,
+        tensordict: TensorDictBase | None = None,  # pylint: disable=unused-argument
+        **kwargs,  # pylint: disable=unused-argument
     ) -> TensorDictBase:
         """Reset environment and return the initial state.
         This method redefines the abstract method _reset() from EnvBase
