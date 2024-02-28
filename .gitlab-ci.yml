@@ -6,7 +6,7 @@ stages:
 # Always setup poetry
 before_script:
   - pip install poetry
-  - poetry install
+  - poetry install --only=dev
 
 # Linting python code with the Pylance linter
 lint:

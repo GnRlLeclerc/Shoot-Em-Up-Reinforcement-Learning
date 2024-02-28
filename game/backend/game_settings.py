@@ -12,3 +12,6 @@ class GameSettings:
 
     # Player entity speed per step
     player_speed: float = 0.1
+
+    # Map size
+    map_size: float = 2
