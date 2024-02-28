@@ -10,6 +10,7 @@ from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.entities.player_entity import PlayerEntity
 from game.backend.game_settings import GameSettings
 from game.backend.physics.math_utils import normalize_rad_angle
+from game.backend.player_actions import PlayerAction
 
 
 class GameTensorConverter:
@@ -94,3 +95,23 @@ class GameTensorConverter:
                 1.0,
             ]
         )
+
+    def actions_from_tensor(self, tensor: torch.Tensor) -> list[PlayerAction]:
+        """Converts a tensor to a list of player actions. This function is not batched!
+
+        The tensor should be of shape (action_count,), where action_count is the number of possible actions.
+        We currently have 5 actions: move up, move down, move left, move right, and shoot. They are ordered
+        in the Enum order of PlayerAction.
+
+        TODO: how to handle player orientation ? Use 1 angle, or x-y continuous coordinates (better for learning) ?
+
+        :returns: A list of player actions.
+        """
+
+        actions: list[PlayerAction] = []
+
+        for proba, action in zip(tensor, PlayerAction):
+            if proba > 0.5:
+                actions.append(action)
+
+        return actions
