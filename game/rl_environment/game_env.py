@@ -75,9 +75,9 @@ class GameEnv(EnvBase):
         """Do a step in the environment and return the next state and reward."""
 
         # Step all environments
-        for _, env in enumerate(self.environments):
-            # TODO: get actions from the input tensordict. Specify format in the class docstring.
-            env.step([])
+        for i, env in enumerate(self.environments):
+            actions = tensordict["actions"][i]
+            env.step(self.converter.actions_from_tensor(actions))
 
         step_output = self.get_state()
         step_output["reward"] = self.rewards.rewards(self.environments)
