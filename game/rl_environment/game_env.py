@@ -9,7 +9,7 @@ from torchrl.envs import EnvBase
 from game.backend.entities.base_entity import EntityType
 from game.backend.entities.bullet_entity import BulletEntity
 from game.backend.entities.enemy_entity import EnemyEntity
-from game.backend.environment import Environment
+from game.backend.environment import Environment, StepEvents
 from game.backend.game_settings import GameSettings
 from game.rl_environment.game_tensor_converter import GameTensorConverter
 from game.rl_environment.rewards.base_rewards import BaseRewards
@@ -74,14 +74,16 @@ class GameEnv(EnvBase):
     def _step(self, tensordict: TensorDictBase) -> TensorDictBase:
         """Do a step in the environment and return the next state and reward."""
 
+        events: list[StepEvents] = []
+
         # Step all environments
         for i, env in enumerate(self.environments):
             torch_actions = tensordict["actions"][i]
             env_actions = self.converter.actions_from_tensor(torch_actions)
-            env.step(env_actions)
+            events.append(env.step(env_actions))
 
         step_output = self.get_state()
-        step_output["reward"] = self.rewards.rewards(self.environments)
+        step_output["reward"] = self.rewards.rewards(self.environments, events)
 
         return step_output.to(self.device)
 
@@ -113,17 +115,15 @@ class GameEnv(EnvBase):
             enemy_count = 0
             bullet_count = 0
 
-            for entity in env.entities:
-                if isinstance(entity, EnemyEntity):
-                    enemy_observations[i, enemy_count] = self.converter.enemy_to_tensor(
-                        entity
-                    )
-                    enemy_count += 1
-                elif isinstance(entity, BulletEntity):
-                    bullet_observations[i, bullet_count] = (
-                        self.converter.bullet_to_tensor(entity)
-                    )
-                    bullet_count += 1
+            for index, enemy in enumerate(env.enemy_entities):
+                enemy_observations[index, enemy_count] = self.converter.enemy_to_tensor(
+                    enemy
+                )
+
+            for index, bullet in enumerate(env.bullet_entities):
+                bullet_observations[index, bullet_count] = (
+                    self.converter.bullet_to_tensor(bullet)
+                )
 
         states = TensorDict(
             {

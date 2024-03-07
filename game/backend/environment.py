@@ -33,6 +33,8 @@ class StepEvents(TypedDict):
     """
 
     enemy_contact_count: int
+    enemy_shot_count: int
+    player_did_shoot: bool
     done: bool
 
 
@@ -101,6 +103,8 @@ class Environment:  # pylint: disable=too-many-instance-attributes
         # Initialize the events for this step
         events: StepEvents = {
             "enemy_contact_count": 0,
+            "enemy_shot_count": 0,
+            "player_did_shoot": False,
             "done": self.done,
         }
 
@@ -109,7 +113,7 @@ class Environment:  # pylint: disable=too-many-instance-attributes
 
         # Update the player position and orientation
         self.player.direction = actions["orientation"]
-        self.handle_player_actions(actions["actions"])
+        events["player_did_shoot"] = self.handle_player_actions(actions["actions"])
         self.player.step(self)
         self.player.object.position = self.game_map.clip_inside(
             self.player.object.position
@@ -130,6 +134,7 @@ class Environment:  # pylint: disable=too-many-instance-attributes
                     and bullet.active
                     and bullet.object.collide(enemy.object)
                 ):
+                    events["enemy_shot_count"] += 1
                     self.bullet_deleter.schedule_remove(bullet)
                     self.enemy_deleter.schedule_remove(enemy)
                     bullet.active = False
@@ -162,13 +167,16 @@ class Environment:  # pylint: disable=too-many-instance-attributes
 
         return events
 
-    def handle_player_actions(self, actions: list[PlayerAction]) -> None:
+    def handle_player_actions(self, actions: list[PlayerAction]) -> bool:
         """Handles the player actions and compute the new player state.
 
         Movement actions are combined into a single direction vector that is normalized before being
         multiplied by the player speed.
+
+        :returns: True if the player shot a bullet, False otherwise
         """
         velocity = np.array([0, 0])
+        player_did_shoot = False
 
         for action in actions:
             if action == PlayerAction.MOVE_UP:
@@ -180,7 +188,7 @@ class Environment:  # pylint: disable=too-many-instance-attributes
             elif action == PlayerAction.MOVE_RIGHT:
                 velocity[0] += 1
             elif action == PlayerAction.SHOOT:
-                self.shoot_bullet()
+                player_did_shoot = self.shoot_bullet()
 
         if np.linalg.norm(velocity) > 0:
             self.player.object.velocity = (
@@ -188,6 +196,8 @@ class Environment:  # pylint: disable=too-many-instance-attributes
             )
         else:
             self.player.object.velocity = velocity
+
+        return player_did_shoot
 
     def reset(self) -> None:
         """Resets the environment to its initial state"""
@@ -215,10 +225,12 @@ class Environment:  # pylint: disable=too-many-instance-attributes
         max_counts = {entity_type: 0 for entity_type in EntityType}
         for env in environments:
             counts = env.get_entity_counts()
-            for entity_type in EntityType:
-                max_counts[entity_type] = max(
-                    max_counts[entity_type], counts[entity_type]
-                )
+            max_counts[EntityType.BULLET] = max(
+                max_counts[EntityType.BULLET], counts[EntityType.BULLET]
+            )
+            max_counts[EntityType.ENEMY] = max(
+                max_counts[EntityType.ENEMY], counts[EntityType.ENEMY]
+            )
         return max_counts
 
     def try_spawn_enemy(self) -> None:
@@ -242,12 +254,14 @@ class Environment:  # pylint: disable=too-many-instance-attributes
         obj.size = self.game_settings.player_size
         self.player = PlayerEntity(obj)
 
-    def shoot_bullet(self) -> None:
+    def shoot_bullet(self) -> bool:
         """Shoot a bullet from the player position.
         This function checks and updates the shoot cooldown.
+
+        :returns: True if the bullet was shot, False otherwise
         """
         if self.current_shot_cooldown > 0:
-            return
+            return False
 
         self.current_shot_cooldown = self.player_shoot_cooldown
 
@@ -259,3 +273,5 @@ class Environment:  # pylint: disable=too-many-instance-attributes
         obj.size = self.game_settings.bullet_size
         bullet = BulletEntity(obj)
         self.bullet_entities.add(bullet)
+
+        return True

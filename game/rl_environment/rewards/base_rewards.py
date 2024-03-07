@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import torch
 
-from game.backend.environment import Environment
+from game.backend.environment import Environment, StepEvents
 from game.backend.game_settings import GameSettings
 
 
@@ -22,12 +22,16 @@ class BaseRewards(ABC):
         self.game_settings = game_settings
 
     @abstractmethod
-    def reward(self, environment: Environment) -> float:
+    def reward(self, environment: Environment, events: StepEvents) -> float:
         """Compute the reward value from a single environment.
         Note that the reward value should be normalized between -1 and 1.
         You should avoid computing rewards for environments that are `done`, leave them at 0.
         """
 
-    def rewards(self, environments: list[Environment]) -> torch.Tensor:
+    def rewards(
+        self, environments: list[Environment], events: list[StepEvents]
+    ) -> torch.Tensor:
         """Compute a reward tensor from a list of environments"""
-        return torch.tensor([self.reward(env) for env in environments])
+        return torch.tensor(
+            [self.reward(env, event) for env, event in zip(environments, events)]
+        )
