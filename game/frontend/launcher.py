@@ -116,9 +116,9 @@ class Launcher:
                     self.environment.reset()
 
             # Render the game
-            window.fill(Color.BLACK)
 
             if screen == Screen.TITLE:
+                window.fill(Color.BLACK)
                 # Render the title screen
                 font = pygame.font.Font(None, 74)
                 text = font.render("Press any key", True, Color.WHITE)
@@ -129,21 +129,10 @@ class Launcher:
                     )
                 )
                 window.blit(text, text_rect)
+                pygame.display.flip()
 
             elif screen == Screen.GAME:
-                renderer.render_map()
-                # Render the player as a square
-                renderer.render_player(self.environment.player)
-
-                # Render all the enemies as red circles
-                for enemy in self.environment.enemy_entities:
-                    renderer.render_enemy(enemy)
-
-                # Render all bullets
-                for bullet in self.environment.bullet_entities:
-                    renderer.render_bullet(bullet)
-
-            pygame.display.flip()
+                renderer.render_all(self.environment)
 
             # Control the frame rate to cap the fps
             clock.tick(self.window_settings.fps)

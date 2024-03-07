@@ -3,7 +3,6 @@
 
 import numpy as np
 
-from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.environment import Environment, StepEvents
 from game.backend.physics.math_utils import interval_map, sigmoid
 from game.rl_environment.rewards.base_rewards import BaseRewards

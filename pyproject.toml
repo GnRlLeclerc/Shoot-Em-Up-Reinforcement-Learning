@@ -16,6 +16,7 @@ lint = "pylint game scripts"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+tqdm = "^4.66.2"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -36,6 +37,7 @@ numpy = "^1.26.4"
 
 [tool.poetry.group.torch.dependencies]
 torchrl = "^0.3.0"
+pillow = "^10.2.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -310,7 +312,7 @@ valid-metaclass-classmethod-first-arg = ["mcs"]
 # ignored-parents =
 
 # Maximum number of arguments for function / method.
-max-args = 5
+max-args = 7
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes = 10
