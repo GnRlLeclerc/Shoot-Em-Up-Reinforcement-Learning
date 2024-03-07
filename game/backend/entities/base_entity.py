@@ -28,6 +28,9 @@ class EntityBase(ABC):
     # Position and velocity
     object: Object2D
 
+    # Active flag (when iterating through sets and deleting entities
+    active: bool = True
+
     def __init__(self, obj: Object2D | None = None) -> None:
         """Instantiates a base entity"""
 

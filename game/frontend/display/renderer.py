@@ -86,7 +86,13 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
 
     def render_bullet(self, bullet: BulletEntity) -> None:
         """Render a bullet entity on screen."""
-        # TODO
+        # Draw a magenta circle
+        pygame.draw.circle(
+            self.screen,
+            Color.MAGENTA,
+            self.converter.to_screen_coords(bullet.object.position, self.bullet_size),
+            self.bullet_size,
+        )
 
     def render_enemy(self, enemy: EnemyEntity) -> None:
         """Render an enemy entity on screen."""

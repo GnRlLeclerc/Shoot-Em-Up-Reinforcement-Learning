@@ -21,12 +21,11 @@ class StepEvents(TypedDict):
     the new environment state.
     """
 
-    player_did_shoot: bool
     enemy_contact_count: int
     done: bool
 
 
-class Environment:
+class Environment:  # pylint: disable=too-many-instance-attributes
     """Holds the current game state"""
 
     # Reference to the main player entity
@@ -37,6 +36,10 @@ class Environment:
     bullet_entities: set[BulletEntity]
     enemy_deleter: LazyRemove
     bullet_deleter: LazyRemove
+
+    # Shooting cooldown in steps
+    player_shoot_cooldown: int
+    current_shot_cooldown: int
 
     # Game mechanism values
     step_seconds: float  # Simulation duration between steps
@@ -74,6 +77,11 @@ class Environment:
             game_settings.map_size, game_settings.map_size, 0, 0
         )
 
+        self.player_shoot_cooldown = int(
+            game_settings.player_shoot_delay / step_seconds
+        )
+        self.current_shot_cooldown = 0
+
         self.init_player()
 
     def step(self, actions: list[PlayerAction]) -> StepEvents:
@@ -82,7 +90,6 @@ class Environment:
         # Initialize the events for this step
         events: StepEvents = {
             "enemy_contact_count": 0,
-            "player_did_shoot": False,
             "done": self.done,
         }
 
@@ -104,12 +111,26 @@ class Environment:
 
         # Handle entity collisions
         for bullet in self.bullet_entities:
-            # TODO: detect collisions with enemies, and remove the enemies as well (see the enemy range, etc)
+            collide = False
+            for enemy in self.enemy_entities:
+                if (
+                    enemy.active
+                    and bullet.active
+                    and bullet.object.collide(enemy.object)
+                ):
+                    self.bullet_deleter.schedule_remove(bullet)
+                    self.enemy_deleter.schedule_remove(enemy)
+                    bullet.active = False
+                    enemy.active = False
+                    collide = True
+                    break
 
             # Remove bullets that are out of the game map
-            if not self.game_map.collide_point(bullet.object.position):
+            if not collide and not self.game_map.collide_point(bullet.object.position):
                 self.bullet_deleter.schedule_remove(bullet)
+
         self.bullet_deleter.apply_remove()
+        self.enemy_deleter.apply_remove()
 
         for enemy in self.enemy_entities:
             # Detect collisions with the player
@@ -122,6 +143,10 @@ class Environment:
 
         # Try to spawn an enemy
         self.try_spawn_enemy()
+
+        # Update shot cooldown
+        if self.current_shot_cooldown > 0:
+            self.current_shot_cooldown -= 1
 
         return events
 
@@ -143,7 +168,7 @@ class Environment:
             elif action == PlayerAction.MOVE_RIGHT:
                 velocity[0] += 1
             elif action == PlayerAction.SHOOT:
-                pass  # TODO: handle shooting and cooldown. Start with one weapon, but we can add more later
+                self.shoot_bullet()
 
         if np.linalg.norm(velocity) > 0:
             self.player.object.velocity = (
@@ -160,6 +185,7 @@ class Environment:
         self.bullet_entities.clear()
         self.bullet_deleter.clear()
         self.done = False
+        self.current_shot_cooldown = 0
 
     def get_entity_counts(self) -> dict[EntityType, int]:
         """Returns the count of each entity type in the environment"""
@@ -203,3 +229,21 @@ class Environment:
         obj = Object2D.from_position(self.game_map.center)
         obj.size = self.game_settings.player_size
         self.player = PlayerEntity(obj)
+
+    def shoot_bullet(self) -> None:
+        """Shoot a bullet from the player position.
+        This function checks and updates the shoot cooldown.
+        """
+        if self.current_shot_cooldown > 0:
+            return
+
+        self.current_shot_cooldown = self.player_shoot_cooldown
+
+        obj = Object2D()
+        obj.position = self.player.object.position + self.player.direction * (
+            self.game_settings.player_size + self.game_settings.bullet_size
+        )
+        obj.velocity = self.player.direction * self.game_settings.bullet_speed
+        obj.size = self.game_settings.bullet_size
+        bullet = BulletEntity(obj)
+        self.bullet_entities.add(bullet)
