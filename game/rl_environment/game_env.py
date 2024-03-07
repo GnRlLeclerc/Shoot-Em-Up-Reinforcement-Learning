@@ -1,16 +1,19 @@
 """TorchRL environment wrapper for the game environment.
 """
 
+import pygame
 import torch
+from PIL import Image
 from tensordict import TensorDict, TensorDictBase
 from torchrl.data.utils import DEVICE_TYPING
 from torchrl.envs import EnvBase
 
 from game.backend.entities.base_entity import EntityType
-from game.backend.entities.bullet_entity import BulletEntity
-from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.environment import Environment, StepEvents
 from game.backend.game_settings import GameSettings
+from game.frontend.display.coordinates_converter import CoordinatesConverter
+from game.frontend.display.renderer import Renderer
+from game.frontend.window_settings import WindowSettings
 from game.rl_environment.game_tensor_converter import GameTensorConverter
 from game.rl_environment.rewards.base_rewards import BaseRewards
 from game.rl_environment.rewards.default_rewards import DefaultRewards
@@ -19,14 +22,23 @@ from game.rl_environment.rewards.default_rewards import DefaultRewards
 class GameEnv(EnvBase):
     """Environment wrapper for reinforcement learning with torchrl"""
 
+    # Game utils
     environments: list[Environment]
     converter: GameTensorConverter
     rewards: BaseRewards
+    done: bool  # Evaluate whether all environments are done
+
+    # Rendering utils
+    support_rendering: bool
+    renderer: Renderer
+    frames: list[Image]  # Store generated frames
+    surface: pygame.Surface
 
     def __init__(
         self,
         game_settings: GameSettings | None = None,
         rewards: BaseRewards | None = None,
+        support_rendering: bool = False,
         device: DEVICE_TYPING = "cpu",
         batch_size: int = 1,
     ) -> None:
@@ -34,6 +46,7 @@ class GameEnv(EnvBase):
 
         :param game_settings: Game settings shared by all environments.
         :param rewards: Reward module to use for the training reward computations.
+        :param support_rendering: Whether to support rendering or not.
         :param device: Device to use for the training (cpu or gpu).
         :param batch_size: Number of parallel environments.
         """
@@ -52,6 +65,25 @@ class GameEnv(EnvBase):
             rewards = DefaultRewards(game_settings)
         self.rewards = rewards
 
+        # Initialize renderer
+        self.support_rendering = support_rendering
+        if support_rendering:
+            assert (
+                len(self.environments) == 1
+            ), "Rendering only works with one environment"
+
+            # Initialize Pygame for off-screen rendering
+            pygame.init()
+            pygame.display.set_mode((1, 1), pygame.NOFRAME)  # Tiny window, not shown
+            window_settings = WindowSettings()
+            self.surface = pygame.Surface(
+                (window_settings.width, window_settings.height)
+            )
+            self.frames = []
+
+            converter = CoordinatesConverter(self.environments[0], window_settings)
+            self.renderer = Renderer(converter, game_settings, self.surface)
+
     def _reset(
         self,
         tensordict: TensorDictBase | None = None,  # pylint: disable=unused-argument
@@ -64,6 +96,9 @@ class GameEnv(EnvBase):
         # Reset all environments
         for env in self.environments:
             env.reset()
+
+        self.done = False
+        self.frames = []
 
         return self.get_state()
 
@@ -84,6 +119,8 @@ class GameEnv(EnvBase):
 
         step_output = self.get_state()
         step_output["reward"] = self.rewards.rewards(self.environments, events)
+
+        self.done = all(env.done for env in self.environments)
 
         return step_output.to(self.device)
 
@@ -112,18 +149,11 @@ class GameEnv(EnvBase):
             dones[i] = env.done
 
             # Build the entity tensors
-            enemy_count = 0
-            bullet_count = 0
-
             for index, enemy in enumerate(env.enemy_entities):
-                enemy_observations[index, enemy_count] = self.converter.enemy_to_tensor(
-                    enemy
-                )
+                enemy_observations[i, index] = self.converter.enemy_to_tensor(enemy)
 
             for index, bullet in enumerate(env.bullet_entities):
-                bullet_observations[index, bullet_count] = (
-                    self.converter.bullet_to_tensor(bullet)
-                )
+                bullet_observations[i, index] = self.converter.bullet_to_tensor(bullet)
 
         states = TensorDict(
             {
@@ -136,3 +166,29 @@ class GameEnv(EnvBase):
         )
 
         return states.to(self.device)
+
+    def render(self) -> None:
+        """Render the current state of the environment into a frame list.
+        Call save_to_gif to save the generated images to a gif file.
+        """
+        assert self.support_rendering, "Rendering is not supported"
+
+        self.renderer.render_all(self.environments[0])
+
+        # Save the frame as an image
+        img_str = pygame.image.tostring(self.surface, "RGB")
+        img = Image.frombytes("RGB", self.surface.get_size(), img_str)
+        self.frames.append(img)
+
+    def save_to_gif(self, filename: str) -> None:
+        """Save the generated images to a gif image."""
+        assert self.support_rendering, "Rendering is not supported"
+
+        print("Saving to gif (this may take a while)...")
+        self.frames[0].save(
+            filename,
+            save_all=True,
+            append_images=self.frames[1:],
+            duration=self.environments[0].step_seconds * len(self.frames),
+            loop=0,
+        )

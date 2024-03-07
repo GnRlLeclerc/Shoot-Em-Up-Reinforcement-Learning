@@ -10,6 +10,7 @@ from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.entities.bullet_entity import BulletEntity
 from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.entities.player_entity import PlayerEntity
+from game.backend.environment import Environment
 from game.backend.game_settings import GameSettings
 from game.frontend.display.colors import Color
 from game.frontend.display.coordinates_converter import CoordinatesConverter
@@ -111,3 +112,24 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
             Color.GREEN,
             self.converter.map_rect,
         )
+
+    def render_all(self, environment: Environment) -> None:
+        """Render all entities on screen."""
+        # Fill the screen black
+        self.screen.fill(Color.BLACK)
+
+        self.render_map()
+
+        # Render all bullets
+        for bullet in environment.bullet_entities:
+            self.render_bullet(bullet)
+
+        # Render all ennemies
+        for enemy in environment.enemy_entities:
+            self.render_enemy(enemy)
+
+        # Render the player
+        self.render_player(environment.player)
+
+        # Update the display
+        pygame.display.flip()
