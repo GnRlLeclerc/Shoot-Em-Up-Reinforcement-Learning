@@ -1,13 +1,29 @@
 """This module defines the environment class, that holds all information about the current game state."""
 
+from typing import TypedDict
+
 import numpy as np
 
-from game.backend.entities.base_entity import EntityBase, EntityType
+from game.backend.entities.base_entity import EntityType
+from game.backend.entities.bullet_entity import BulletEntity
+from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.entities.player_entity import PlayerEntity
 from game.backend.game_settings import GameSettings
 from game.backend.physics.bounding_box import BoundingBox2D
 from game.backend.physics.math_utils import normalize
+from game.backend.physics.physical_object import Object2D
 from game.backend.player_actions import PlayerAction
+from game.utils.lazy_remove import LazyRemove
+
+
+class StepEvents(TypedDict):
+    """Store specific events that occurred during a game step, and that cannot be determined by just observing
+    the new environment state.
+    """
+
+    player_did_shoot: bool
+    enemy_contact_count: int
+    done: bool
 
 
 class Environment:
@@ -16,9 +32,11 @@ class Environment:
     # Reference to the main player entity
     player: PlayerEntity
 
-    # All other entities (note that we use a set for easy removal
-    entities: set[EntityBase]
-    delete_entities: list[EntityBase]  # Entities to be removed at the end of the step
+    # All other entities (note that we use a set for easy removal)
+    enemy_entities: set[EnemyEntity]
+    bullet_entities: set[BulletEntity]
+    enemy_deleter: LazyRemove
+    bullet_deleter: LazyRemove
 
     # Game mechanism values
     step_seconds: float  # Simulation duration between steps
@@ -33,12 +51,19 @@ class Environment:
     # Done flag: identify when the game is over
     done: bool
 
-    def __init__(self, game_settings: GameSettings | None = None) -> None:
+    def __init__(
+        self, game_settings: GameSettings | None = None, step_seconds: float = 1 / 30
+    ) -> None:
         """Instantiates the environment"""
         self.player = PlayerEntity()
-        self.entities = set()
-        self.delete_entities = []
-        self.step_seconds = 0.1
+
+        # Instantiate entity holders
+        self.enemy_entities = set()
+        self.enemy_deleter = LazyRemove(self.enemy_entities)
+        self.bullet_entities = set()
+        self.bullet_deleter = LazyRemove(self.bullet_entities)
+
+        self.step_seconds = step_seconds
         self.done = False
 
         if game_settings is None:
@@ -50,12 +75,15 @@ class Environment:
             game_settings.map_size, game_settings.map_size, 0, 0
         )
 
-    def step(self, actions: list[PlayerAction]) -> None:
+    def step(self, actions: list[PlayerAction]) -> StepEvents:
         """Updates the environment state"""
 
-        # Update all entities
-        for entity in self.entities:
-            entity.step(self)
+        # Initialize the events for this step
+        events: StepEvents = {
+            "enemy_contact_count": 0,
+            "player_did_shoot": False,
+            "done": self.done,
+        }
 
         # Update the player position
         self.handle_player_actions(actions)
@@ -64,18 +92,27 @@ class Environment:
             self.player.object.position
         )
 
-        # Filter out bullet entities that are out of the game map
-        self.delete_entities.clear()
-        # Identify entities to be removed in O(n) time
-        for entity in self.entities:
-            if entity.type == EntityType.BULLET and not self.game_map.collide_point(
-                entity.object.position
-            ):
-                self.delete_entities.append(entity)
+        # Update all entity positions
+        for bullet in self.bullet_entities:
+            bullet.step(self)
+        for enemy in self.enemy_entities:
+            enemy.step(self)
 
-        # Remove the entities in O(n) time
-        for entity in self.delete_entities:
-            self.entities.remove(entity)
+        # Handle entity collisions
+        for bullet in self.bullet_entities:
+            # TODO: detect collisions with enemies, and remove the enemies as well (see the enemy range, etc)
+
+            # Remove bullets that are out of the game map
+            if not self.game_map.collide_point(bullet.object.position):
+                self.bullet_deleter.schedule_remove(bullet)
+
+        self.bullet_deleter.apply_remove()
+        self.enemy_deleter.apply_remove()
+
+        # Try to spawn an enemy
+        self.try_spawn_enemy()
+
+        return events
 
     def handle_player_actions(self, actions: list[PlayerAction]) -> None:
         """Handles the player actions and compute the new player state.
@@ -107,15 +144,19 @@ class Environment:
     def reset(self) -> None:
         """Resets the environment to its initial state"""
         self.player = PlayerEntity()
-        self.entities.clear()
-        self.delete_entities.clear()
+        self.enemy_entities.clear()
+        self.enemy_deleter.clear()
+        self.bullet_entities.clear()
+        self.bullet_deleter.clear()
         self.done = False
 
     def get_entity_counts(self) -> dict[EntityType, int]:
         """Returns the count of each entity type in the environment"""
-        counts = {entity_type: 0 for entity_type in EntityType}
-        for entity in self.entities:
-            counts[entity.type] += 1
+        counts = {
+            EntityType.ENEMY: len(self.enemy_entities),
+            EntityType.BULLET: len(self.bullet_entities),
+        }
+
         return counts
 
     @staticmethod
@@ -130,3 +171,16 @@ class Environment:
                     max_counts[entity_type], counts[entity_type]
                 )
         return max_counts
+
+    def try_spawn_enemy(self) -> None:
+        """Try to spawn an enemy at a pseudo random position.
+        This method should be called at every step.
+        It has a probability of enemy_spawn_rate * step_seconds to spawn an enemy.
+        """
+        probability = self.game_settings.enemy_spawn_rate * self.step_seconds
+        if np.random.rand() < probability:
+
+            # Generate a random angle to place the enemy
+            angle = np.random.rand() * 2 * np.pi
+            position = self.game_map.edge_position_from_center_angle(angle)
+            self.enemy_entities.add(EnemyEntity(Object2D.from_position(position)))

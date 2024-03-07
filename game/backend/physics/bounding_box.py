@@ -70,3 +70,19 @@ class BoundingBox2D:
         return np.clip(
             point, self.center - self.half_size, self.center + self.half_size
         )
+
+    def edge_position_from_center_angle(self, angle: float) -> np.ndarray:
+        """Returns a point belonging to the box edge with the given angle from the center.
+        An angle of 0 means looking to the right, and the angle increases counter-clockwise (trigonometric direction).
+        The angle is expected to be in radians.
+        """
+
+        # Vector with the correct direction
+        vector = self.center + np.array(
+            [np.cos(angle), np.sin(angle)], dtype=np.float64
+        )
+
+        # Evaluate the minimum factor that makes the vector clip with the boundaries
+        multiplier = (self.half_size / np.abs(vector - self.center)).min()
+
+        return vector * multiplier

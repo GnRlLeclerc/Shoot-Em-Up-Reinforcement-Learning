@@ -34,9 +34,13 @@ class Launcher:
         self.window_settings = window_settings
 
         # Initialize game environment
-        self.environment = Environment(game_settings)
+        self.environment = Environment(
+            game_settings, step_seconds=1 / window_settings.fps
+        )
 
-    def launch(self) -> None:  # pylint: disable=too-many-branches
+    def launch(  # pylint: disable=too-many-branches, too-many-locals
+        self,
+    ) -> None:
         """Launch the game"""
         pygame.init()
 
@@ -44,10 +48,11 @@ class Launcher:
         window = pygame.display.set_mode(
             (self.window_settings.width, self.window_settings.height)
         )
+        pygame.display.set_caption("Shoot'Em Up")
 
         # Initialize renderer
         converter = CoordinatesConverter(self.environment, self.window_settings)
-        renderer = Renderer(converter, window)
+        renderer = Renderer(converter, self.environment.game_settings, window)
 
         # Initialize game state
         screen = Screen.TITLE
@@ -114,6 +119,14 @@ class Launcher:
                 renderer.render_map()
                 # Render the player as a square
                 renderer.render_player(self.environment.player)
+
+                # Render all the enemies as red circles
+                for enemy in self.environment.enemy_entities:
+                    renderer.render_enemy(enemy)
+
+                # Render all bullets
+                for bullet in self.environment.bullet_entities:
+                    renderer.render_bullet(bullet)
 
             pygame.display.flip()
 

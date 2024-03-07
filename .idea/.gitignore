@@ -11,3 +11,6 @@
 
 # Dictionnaries
 /dictionaries/
+
+# GitHub Copilot persisted chat sessions
+/copilot/chatSessions
