@@ -1,8 +1,13 @@
 """The basic enemy entity"""
 
+from typing import TYPE_CHECKING
+
 from game.backend.entities.base_entity import EntityBase, EntityType
-from game.backend.environment import Environment
 from game.backend.physics.math_utils import normalize
+
+if TYPE_CHECKING:
+    # Avoid circular import which is only needed for type hints
+    from game.backend.environment import Environment
 
 
 class EnemyEntity(EntityBase):

@@ -12,5 +12,3 @@ class WindowSettings:
     height: int = 960
 
     fps: int = 30
-
-    player_size: int = 50

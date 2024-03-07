@@ -95,3 +95,16 @@ class CoordinatesConverter:
         coords[1] = self.window_settings.height - coords[1]
         coords -= self.entity_offsets
         return coords / self.scale
+
+    def to_game_size(self, size: float) -> float:
+        """Convert a size in screen pixels to game map units"""
+        return size / self.scale
+
+    def to_screen_size(self, size: float) -> float:
+        """Convert a size in game map units to screen pixels"""
+        return size * self.scale
+
+    def square_same_area(self, size: float) -> float:
+        """Return a square width such that the resulting square has the same area as a circle with the input size as
+        a radius"""
+        return np.sqrt(np.pi) * size
