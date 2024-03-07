@@ -118,6 +118,10 @@ class GameTensorConverter:
 
         :returns: A list of player actions.
         """
+        assert (
+            len(tensor.shape) == 1
+        ), "This function does not take batched tensors as input."
+        assert tensor.shape == (7,), "The tensor should have shape (7,)"
 
         actions: list[PlayerAction] = []
 
