@@ -4,6 +4,7 @@ import numpy as np
 
 from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.physics.math_utils import normalize, rad_2_deg, rotation_angle
+from game.backend.physics.physical_object import Object2D
 
 
 class PlayerEntity(EntityBase):
@@ -12,9 +13,9 @@ class PlayerEntity(EntityBase):
     # Direction at which the player looks
     direction: np.ndarray
 
-    def __init__(self) -> None:
+    def __init__(self, obj: Object2D | None = None) -> None:
         """Instantiate a player entity"""
-        super().__init__()
+        super().__init__(obj)
         self.direction = np.zeros(2)
 
     @property

@@ -10,6 +10,7 @@ from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.entities.bullet_entity import BulletEntity
 from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.entities.player_entity import PlayerEntity
+from game.backend.game_settings import GameSettings
 from game.frontend.display.colors import Color
 from game.frontend.display.coordinates_converter import CoordinatesConverter
 from game.frontend.display.render_utils import draw_rotated_rect
@@ -30,15 +31,23 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
 
     # Converter helper for the coordinates
     converter: CoordinatesConverter
+    game_settings: GameSettings
+
+    # Precompute sizes
+    player_size: float
+    bullet_size: float
+    enemy_size: float
 
     def __init__(
         self,
         converter: CoordinatesConverter,
+        game_settings: GameSettings,
         screen: Surface | SurfaceType,
     ) -> None:
         """Initializes the entity renderer with default settings."""
-        self.screen = screen
         self.converter = converter
+        self.game_settings = game_settings
+        self.screen = screen
 
         # Register rendering functions
         self.render_lookup = {
@@ -46,6 +55,10 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
             EntityType.BULLET: self.render_bullet,
             EntityType.ENEMY: self.render_enemy,
         }
+
+        self.player_size = self.converter.to_screen_size(game_settings.player_size)
+        self.enemy_size = self.converter.to_screen_size(game_settings.enemy_size)
+        self.bullet_size = self.converter.to_screen_size(game_settings.bullet_size)
 
     def render_entity(self, entity: EntityBase) -> None:
         """Render an entity on screen.
@@ -58,15 +71,15 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
 
     def render_player(self, player: PlayerEntity) -> None:
         """Render the player entity on screen."""
-        player_size = self.converter.window_settings.player_size
+        actual_size = self.converter.square_same_area(self.player_size)
 
         draw_rotated_rect(
             self.screen,
-            Color.RED,
+            Color.BLUE,
             Rect(
-                *self.converter.to_screen_coords(player.object.position, player_size),
-                player_size,
-                player_size,
+                *self.converter.to_screen_coords(player.object.position, actual_size),
+                actual_size,
+                actual_size,
             ),
             player.deg_angle,
         )
@@ -77,7 +90,13 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
 
     def render_enemy(self, enemy: EnemyEntity) -> None:
         """Render an enemy entity on screen."""
-        # TODO
+        # Draw a red circle
+        pygame.draw.circle(
+            self.screen,
+            Color.RED,
+            self.converter.to_screen_coords(enemy.object.position, self.enemy_size),
+            self.enemy_size,
+        )
 
     def render_map(self) -> None:
         """Render the map background on screen."""

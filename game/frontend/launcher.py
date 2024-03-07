@@ -100,6 +100,11 @@ class Launcher:
                 # Update game state
                 self.environment.step(actions)
 
+                # Check if the game is over
+                if self.environment.done:
+                    screen = Screen.TITLE
+                    self.environment.reset()
+
             # Render the game
             window.fill(Color.BLACK)
 
