@@ -55,7 +55,8 @@ class Environment:
         self, game_settings: GameSettings | None = None, step_seconds: float = 1 / 30
     ) -> None:
         """Instantiates the environment"""
-        self.player = PlayerEntity()
+        if game_settings is None:
+            game_settings = GameSettings()
 
         # Instantiate entity holders
         self.enemy_entities = set()
@@ -66,14 +67,14 @@ class Environment:
         self.step_seconds = step_seconds
         self.done = False
 
-        if game_settings is None:
-            game_settings = GameSettings()
         self.game_settings = game_settings
 
         # Create an empty game map
         self.game_map = BoundingBox2D(
             game_settings.map_size, game_settings.map_size, 0, 0
         )
+
+        self.init_player()
 
     def step(self, actions: list[PlayerAction]) -> StepEvents:
         """Updates the environment state"""
@@ -84,6 +85,9 @@ class Environment:
             "player_did_shoot": False,
             "done": self.done,
         }
+
+        if self.done:
+            return events
 
         # Update the player position
         self.handle_player_actions(actions)
@@ -105,8 +109,15 @@ class Environment:
             # Remove bullets that are out of the game map
             if not self.game_map.collide_point(bullet.object.position):
                 self.bullet_deleter.schedule_remove(bullet)
-
         self.bullet_deleter.apply_remove()
+
+        for enemy in self.enemy_entities:
+            # Detect collisions with the player
+            if self.player.object.collide(enemy.object):
+                events["enemy_contact_count"] += 1
+                self.done = True
+                break
+
         self.enemy_deleter.apply_remove()
 
         # Try to spawn an enemy
@@ -143,7 +154,7 @@ class Environment:
 
     def reset(self) -> None:
         """Resets the environment to its initial state"""
-        self.player = PlayerEntity()
+        self.init_player()
         self.enemy_entities.clear()
         self.enemy_deleter.clear()
         self.bullet_entities.clear()
@@ -183,4 +194,12 @@ class Environment:
             # Generate a random angle to place the enemy
             angle = np.random.rand() * 2 * np.pi
             position = self.game_map.edge_position_from_center_angle(angle)
-            self.enemy_entities.add(EnemyEntity(Object2D.from_position(position)))
+            obj = Object2D.from_position(position)
+            obj.size = self.game_settings.enemy_size
+            self.enemy_entities.add(EnemyEntity(obj))
+
+    def init_player(self) -> None:
+        """Initialize the player position"""
+        obj = Object2D.from_position(self.game_map.center)
+        obj.size = self.game_settings.player_size
+        self.player = PlayerEntity(obj)
