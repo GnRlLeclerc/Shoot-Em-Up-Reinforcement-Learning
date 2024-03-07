@@ -76,8 +76,9 @@ class GameEnv(EnvBase):
 
         # Step all environments
         for i, env in enumerate(self.environments):
-            actions = tensordict["actions"][i]
-            env.step(self.converter.actions_from_tensor(actions))
+            torch_actions = tensordict["actions"][i]
+            env_actions = self.converter.actions_from_tensor(torch_actions)
+            env.step(env_actions)
 
         step_output = self.get_state()
         step_output["reward"] = self.rewards.rewards(self.environments)
