@@ -17,10 +17,13 @@ class GameSettings:
 
     # Bullet entity speed per second & size
     bullet_speed: float = 1
-    bullet_size: float = 0.1
+    bullet_size: float = 0.02
 
     # Map size
     map_size: float = 2
 
     # Enemy spawn rate (per second)
     enemy_spawn_rate: float = 0.5
+
+    # Delay between player shots (in seconds)
+    player_shoot_delay: float = 0.3

@@ -76,12 +76,11 @@ class Launcher:
                 if event.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN):
                     if screen == Screen.TITLE:
                         screen = Screen.GAME
-                    else:
-                        actions.append(PlayerAction.SHOOT)
 
-            # Handle pressed keys
-            keys = pygame.key.get_pressed()
             if screen == Screen.GAME:
+                # Handle pressed keys
+                keys = pygame.key.get_pressed()
+
                 if keys[pygame.K_LEFT]:
                     actions.append(PlayerAction.MOVE_LEFT)
                 if keys[pygame.K_RIGHT]:
@@ -91,7 +90,10 @@ class Launcher:
                 if keys[pygame.K_DOWN]:
                     actions.append(PlayerAction.MOVE_DOWN)
 
-            if screen == Screen.GAME:
+                mouse_buttons = pygame.mouse.get_pressed()
+                if mouse_buttons[0]:
+                    actions.append(PlayerAction.SHOOT)
+
                 # Orient the player in the direction of the mouse
                 mouse_pos = pygame.mouse.get_pos()
                 game_pos = converter.to_game_coords(mouse_pos)
