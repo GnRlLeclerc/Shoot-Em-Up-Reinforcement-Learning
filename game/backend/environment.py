@@ -16,6 +16,17 @@ from game.backend.player_actions import PlayerAction
 from game.utils.lazy_remove import LazyRemove
 
 
+class ActionDict(TypedDict):
+    """Player action data dict that holds the actions and player orientation for an environment step
+
+    * actions: list of player actions
+    * orientation: player orientation vector (normalized 2D vector)
+    """
+
+    actions: list[PlayerAction]
+    orientation: np.ndarray
+
+
 class StepEvents(TypedDict):
     """Store specific events that occurred during a game step, and that cannot be determined by just observing
     the new environment state.
@@ -84,7 +95,7 @@ class Environment:  # pylint: disable=too-many-instance-attributes
 
         self.init_player()
 
-    def step(self, actions: list[PlayerAction]) -> StepEvents:
+    def step(self, actions: ActionDict) -> StepEvents:
         """Updates the environment state"""
 
         # Initialize the events for this step
@@ -96,8 +107,9 @@ class Environment:  # pylint: disable=too-many-instance-attributes
         if self.done:
             return events
 
-        # Update the player position
-        self.handle_player_actions(actions)
+        # Update the player position and orientation
+        self.player.direction = actions["orientation"]
+        self.handle_player_actions(actions["actions"])
         self.player.step(self)
         self.player.object.position = self.game_map.clip_inside(
             self.player.object.position

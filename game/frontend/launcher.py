@@ -6,6 +6,7 @@ import pygame
 
 from game.backend.environment import Environment
 from game.backend.game_settings import GameSettings
+from game.backend.physics.math_utils import normalize
 from game.backend.player_actions import PlayerAction
 from game.frontend.display.colors import Color
 from game.frontend.display.coordinates_converter import CoordinatesConverter
@@ -97,10 +98,17 @@ class Launcher:
                 # Orient the player in the direction of the mouse
                 mouse_pos = pygame.mouse.get_pos()
                 game_pos = converter.to_game_coords(mouse_pos)
-                self.environment.player.look_at(game_pos)
+                orientation = normalize(
+                    game_pos - self.environment.player.object.position
+                )
 
                 # Update game state
-                self.environment.step(actions)
+                self.environment.step(
+                    {
+                        "actions": actions,
+                        "orientation": orientation,
+                    }
+                )
 
                 # Check if the game is over
                 if self.environment.done:

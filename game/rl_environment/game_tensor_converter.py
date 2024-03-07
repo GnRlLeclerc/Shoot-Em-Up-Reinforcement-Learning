@@ -8,6 +8,7 @@ import torch
 from game.backend.entities.bullet_entity import BulletEntity
 from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.entities.player_entity import PlayerEntity
+from game.backend.environment import ActionDict
 from game.backend.game_settings import GameSettings
 from game.backend.physics.math_utils import normalize_rad_angle
 from game.backend.player_actions import PlayerAction
@@ -96,22 +97,47 @@ class GameTensorConverter:
             ]
         )
 
-    def actions_from_tensor(self, tensor: torch.Tensor) -> list[PlayerAction]:
+    def actions_from_tensor(self, tensor: torch.Tensor) -> ActionDict:
         """Converts a tensor to a list of player actions. This function is not batched!
 
         The tensor should be of shape (action_count,), where action_count is the number of possible actions.
         We currently have 5 actions: move up, move down, move left, move right, and shoot. They are ordered
         in the Enum order of PlayerAction.
 
-        TODO: how to handle player orientation ? Use 1 angle, or x-y continuous coordinates (better for learning) ?
+        Note on orientation: in order to make reinforcement learning models understand that the orientation angle
+        loops around from -pi to pi, we use 2 values to encode it: a sine and a cosine prediction.
+
+        :param tensor: A tensor of shape (7,) representing the probabilities of each action.
+            * move up
+            * move down
+            * move left
+            * move right
+            * shoot
+            * orientation sine
+            * orientation cosine
 
         :returns: A list of player actions.
         """
 
         actions: list[PlayerAction] = []
 
+        # Loop through the 5 main actions
         for proba, action in zip(tensor, PlayerAction):
             if proba > 0.5:
                 actions.append(action)
 
-        return actions
+        # Handle the orientation predictions
+        orientation_sine = tensor[5]
+        orientation_cosine = tensor[6]
+
+        # Compute the orientation angle from the sine and cosine predictions
+        orientation = np.arctan2(orientation_sine, orientation_cosine)
+        orientation = normalize_rad_angle(orientation)
+
+        # Create a normalized orientation vector from the angle
+        orientation = np.array([np.cos(orientation), np.sin(orientation)])
+
+        return {
+            "actions": actions,
+            "orientation": orientation,
+        }
