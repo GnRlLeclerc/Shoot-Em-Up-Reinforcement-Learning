@@ -1,9 +1,8 @@
 """Run reinforcement learning models on the game environment"""
 
-import numpy as np
-
-import setup  # pylint: disable=unused-import
 import cma
+import numpy as np
+import setup  # pylint: disable=unused-import
 
 from game.backend.game_settings import GameSettings
 from game.rl_agents.evaluation.objective_function import ObjectiveFunction
