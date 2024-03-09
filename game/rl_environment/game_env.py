@@ -190,5 +190,6 @@ class GameEnv(EnvBase):
             save_all=True,
             append_images=self.frames[1:],
             duration=self.environments[0].step_seconds * len(self.frames),
+            optimize=False,
             loop=0,
         )
