@@ -1,5 +1,7 @@
 """Run reinforcement learning models on the game environment"""
 
+import numpy as np
+
 import setup  # pylint: disable=unused-import
 import cma
 
@@ -36,4 +38,9 @@ if __name__ == "__main__":
         objective_function, x0=initial_weights, sigma0=10.0, options={"maxfevals": 1500}
     )
 
-    print("Optimal weights found:", x_optimal)
+    # Save the weights to a file
+    weights = policy.to_numpy()
+    np.savetxt("weights.txt", weights)
+
+    # Test the model and render to gif
+    objective_function(weights, "result.gif")

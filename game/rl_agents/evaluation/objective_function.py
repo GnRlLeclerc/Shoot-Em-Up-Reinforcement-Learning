@@ -51,8 +51,11 @@ class ObjectiveFunction:
         self.max_time_steps = max_time_steps
         self.minimize = minimize
 
-    def __call__(self, params: np.ndarray) -> float:
+    def __call__(self, params: np.ndarray, render_to: str | None = None) -> float:
         """Call the objective function with external parameters.
+
+        :param params: The parameters to evaluate.
+        :param render_to: If not None, render the environment to the given file path.
 
         :returns: The average total reward over the episodes.
         """
@@ -80,12 +83,20 @@ class ObjectiveFunction:
                     # Accumulate the reward
                     total_reward += reward
 
+                    # Render if needed
+                    if render_to is not None:
+                        self.environment.render()
+
                     # Check if the episode is done (as the batched environment has only one in this case, this will work
                     if self.environment.done:
                         break
 
                 # Accumulate the total reward
                 average_rewards += total_reward / self.num_episodes
+
+        # Save the rendering if needed
+        if render_to is not None:
+            self.environment.save_to_gif(render_to)
 
         # Invert the rewards if we are minimizing an output using optimizers
         return -average_rewards if self.minimize else average_rewards
