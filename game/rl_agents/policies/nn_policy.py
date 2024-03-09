@@ -71,9 +71,12 @@ class NeuralPolicy(nn.Module):
 
         x = torch.relu(self.fc1(x))
         x = self.fc2(x)
-        x = torch.sigmoid(x[:5]) + torch.tanh(x[5:7])
 
-        return x
+        # Build the output tensor of size 7
+        probas = torch.sigmoid(x[:5])
+        orientation = torch.tanh(x[5:7])
+
+        return torch.cat((probas, orientation), dim=0)
 
     def from_numpy(self, weights: np.ndarray) -> None:
         """Load tensor weights from a flat numpy array of shape (param_count,).
@@ -83,7 +86,9 @@ class NeuralPolicy(nn.Module):
         for param in self.parameters():
             current_count = np.prod(param.shape)
             new_param = weights[offset : offset + current_count].reshape(param.shape)
-            param.data = torch.tensor(new_param, device=self.device)
+            param.data = torch.tensor(
+                new_param, device=self.device, dtype=torch.float32
+            )
             offset += current_count
 
     def to_numpy(self) -> np.ndarray:
@@ -95,7 +100,9 @@ class NeuralPolicy(nn.Module):
         offset = 0
         for param in self.parameters():
             current_count = np.prod(param.shape)
-            weights[offset : offset + current_count] = param.data.cpu().numpy().ravel()
+            weights[offset : offset + current_count] = (
+                param.data.cpu().detach().numpy().ravel()
+            )
             offset += current_count
 
         return weights

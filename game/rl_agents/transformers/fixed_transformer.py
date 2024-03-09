@@ -25,7 +25,7 @@ class FixedTransformer(BaseTransformer):
         """Transform the state tensordict to a model input tensor."""
 
         # Player state of size 6 + n enemies of size 5 each
-        output = torch.zeros(5 + 5 * self.max_enemies)
+        output = torch.zeros(6 + 5 * self.max_enemies)
 
         output[:6] = batched_state["player_obs"][env_index]
 

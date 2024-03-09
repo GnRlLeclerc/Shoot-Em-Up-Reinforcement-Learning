@@ -28,8 +28,8 @@ class DefaultRewards(BaseRewards):
         min_distance = self.game_settings.map_size
 
         for entity in environment.enemy_entities:
-            distance = np.sqrt(
-                (entity.object.position * environment.player.object.position).sum()
+            distance = np.linalg.norm(
+                entity.object.position - environment.player.object.position
             )
             min_distance = min(min_distance, distance)
 

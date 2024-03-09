@@ -8,6 +8,7 @@ Note that objective functions do not use batches !  They work with a single envi
 from typing import Callable
 
 import numpy as np
+import torch
 from torch import Tensor
 
 from game.rl_agents.transformers.base_transformer import BaseTransformer
@@ -64,25 +65,27 @@ class ObjectiveFunction:
 
             # Run the policy
             total_reward = 0.0
-            for _ in range(self.max_time_steps):
-                # Compute the action
-                policy_state = self.transformer.transform_state(tensordict_state, 0)
-                action_tensor = self.policy(policy_state, params)
-                action_tensordict = self.transformer.action_to_dict([action_tensor])
 
-                # Step the environment
-                output = self.environment.step(action_tensordict)
-                reward = output["reward"][0]
+            with torch.no_grad():  # The objective function evaluates and does not train
+                for _ in range(self.max_time_steps):
+                    # Compute the action
+                    policy_state = self.transformer.transform_state(tensordict_state, 0)
+                    action_tensor = self.policy(policy_state, params)
+                    action_tensordict = self.transformer.action_to_dict([action_tensor])
 
-                # Accumulate the reward
-                total_reward += reward
+                    # Step the environment
+                    output = self.environment.step(action_tensordict)
+                    reward = output["next"]["reward"][0].item()
 
-                # Check if the episode is done (as the batched environment has only one in this case, this will work
-                if self.environment.done:
-                    break
+                    # Accumulate the reward
+                    total_reward += reward
 
-            # Accumulate the total reward
-            average_rewards += total_reward / self.num_episodes
+                    # Check if the episode is done (as the batched environment has only one in this case, this will work
+                    if self.environment.done:
+                        break
+
+                # Accumulate the total reward
+                average_rewards += total_reward / self.num_episodes
 
         # Invert the rewards if we are minimizing an output using optimizers
         return -average_rewards if self.minimize else average_rewards
