@@ -39,17 +39,19 @@ class GameTensorConverter:
         * y position
         * x speed
         * y speed
-        * orientation: angle in [-pi, pi] scaled back to [-1, 1]
+        * orientation x
+        * orientation y
 
         All positions and velocities are scaled to [-1, 1] according to the game settings.
 
-        :returns: A tensor observation of the player entity. Shape is (5,).
+        :returns: A tensor observation of the player entity. Shape is (6,).
         """
         return torch.tensor(
             [
                 *(player.object.position / self.max_position),
                 *(player.object.velocity / self.max_velocity),
-                normalize_rad_angle(player.rad_angle) / np.pi,
+                player.direction[0],
+                player.direction[1],
             ]
         )
 

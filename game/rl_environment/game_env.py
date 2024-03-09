@@ -130,7 +130,7 @@ class GameEnv(EnvBase):
         # Count the max bullets and ennemies for this batch among all environments
         counts = Environment.get_max_entity_count(self.environments)
 
-        player_observations = torch.zeros(self.batch_size + (5,))
+        player_observations = torch.zeros(self.batch_size + (6,))
         bullet_observations = torch.zeros(
             self.batch_size + (counts[EntityType.BULLET], 5)
         )
