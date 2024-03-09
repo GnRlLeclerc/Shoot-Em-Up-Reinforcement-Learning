@@ -38,6 +38,8 @@ numpy = "^1.26.4"
 [tool.poetry.group.torch.dependencies]
 torchrl = "^0.3.0"
 pillow = "^10.2.0"
+cma = "^3.3.0"
+matplotlib = "^3.8.3"
 
 [build-system]
 requires = ["poetry-core"]
