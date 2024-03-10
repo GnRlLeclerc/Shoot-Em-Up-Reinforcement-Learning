@@ -41,6 +41,14 @@ You must first install `Python 3.11` on your machine (preferably using a manager
 poetry install
 ```
 
+If this command fails, (install is stuck on _'Pending...'_) you can run the following command before retrying :
+
+```bash
+export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+```
+
+The issue is described [here](https://github.com/python-poetry/poetry/issues/6668). Otherwise, you can install the dependencies manually from the `pyproject.toml` file.
+
 This will create a virtual environment in the `.venv` root folder. You can activate it with:
 
 ```bash
