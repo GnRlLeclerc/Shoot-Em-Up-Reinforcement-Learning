@@ -86,3 +86,24 @@ class BoundingBox2D:
         multiplier = (self.half_size / np.abs(vector - self.center)).min()
 
         return vector * multiplier
+
+    def closest_edge_point(self, point: np.ndarray) -> np.ndarray:
+        """Returns the closest point on the box edge to the given point"""
+        # Because the box is rectangular, we can just compute the 4 projections of the query point onto the edges,
+        # and keep the one with the smallest squared distance.
+
+        # Compute the projections
+        projections = np.array(
+            [
+                [point[0], self.center[1] + self.half_size[1]],
+                [point[0], self.center[1] - self.half_size[1]],
+                [self.center[0] + self.half_size[0], point[1]],
+                [self.center[0] - self.half_size[0], point[1]],
+            ]
+        )
+
+        # Compute the squared distances
+        distances = np.sum((projections - point) ** 2, axis=1)
+
+        # Return the closest point
+        return projections[distances.argmin()]

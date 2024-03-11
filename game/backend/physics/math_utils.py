@@ -13,13 +13,18 @@ def normalize_rad_angle(angle: float) -> float:
     return (angle + np.pi) % (2 * np.pi) - np.pi
 
 
+def direction_angle(vec: np.ndarray) -> float:
+    """Get the angle in radians from the x-axis to the input vector"""
+    return np.arctan2(vec[1], vec[0])
+
+
 def rotation_angle(vec1: np.ndarray, vec2: np.ndarray) -> float:
     """Get the rotation angle in radians from vec1 to vec2.
     This function assumes that the input vectors were normalized
 
     The output range is [- 2*pi, 2*pi]
     """
-    return np.arctan2(vec2[1], vec2[0]) - np.arctan2(vec1[1], vec1[0])
+    return direction_angle(vec2) - direction_angle(vec1)
 
 
 def rad_2_deg(rad: float) -> float:
