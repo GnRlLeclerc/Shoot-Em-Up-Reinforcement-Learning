@@ -64,6 +64,9 @@ disable = "R0903"
 # Disable "module xxx has no member yyy" because pylint does not detect pygame members correctly.
 disable = "E1101"
 
+[tool.pylint."R0801"]
+# Disable "duplicate code" remarks, because we are prototyping and this happens a lot.
+disable = "R0801"
 
 [tool.pylint.main]
 # Analyse import fallback blocks. This can be used to support both Python 2 and 3

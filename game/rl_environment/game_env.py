@@ -16,7 +16,6 @@ from game.frontend.display.renderer import Renderer
 from game.frontend.window_settings import WindowSettings
 from game.rl_environment.game_tensor_converter import GameTensorConverter
 from game.rl_environment.rewards.base_rewards import BaseRewards
-from game.rl_environment.rewards.default_rewards import DefaultRewards
 
 
 class GameEnv(EnvBase):
@@ -25,7 +24,7 @@ class GameEnv(EnvBase):
     # Game utils
     environments: list[Environment]
     converter: GameTensorConverter
-    rewards: BaseRewards
+    rewards: list[BaseRewards]
     done: bool  # Evaluate whether all environments are done
 
     # Rendering utils
@@ -37,7 +36,7 @@ class GameEnv(EnvBase):
     def __init__(
         self,
         game_settings: GameSettings | None = None,
-        rewards: BaseRewards | None = None,
+        rewards: list[BaseRewards] | None = None,
         support_rendering: bool = False,
         debug_window_settings: WindowSettings | None = None,
         device: DEVICE_TYPING = "cpu",
@@ -46,7 +45,7 @@ class GameEnv(EnvBase):
         """Instantiates a torchrl environment wrapper for the game environment.
 
         :param game_settings: Game settings shared by all environments.
-        :param rewards: Reward module to use for the training reward computations.
+        :param rewards: Reward modules to use for the training reward computations. They are summed up.
         :param support_rendering: Whether to support rendering or not.
         :param debug_window_settings: Settings in order to render the game in real time for debugging.
         :param device: Device to use for the training (cpu or gpu).
@@ -64,7 +63,7 @@ class GameEnv(EnvBase):
 
         # Initialize rewards
         if rewards is None:
-            rewards = DefaultRewards(game_settings)
+            rewards = []  # No rewards by default ?
         self.rewards = rewards
 
         # Initialize renderer
@@ -131,7 +130,7 @@ class GameEnv(EnvBase):
             events.append(env.step(env_actions))
 
         step_output = self.get_state()
-        step_output["reward"] = self.rewards.rewards(self.environments, events)
+        step_output["reward"] = BaseRewards.all(self.rewards, self.environments, events)
 
         self.done = all(env.done for env in self.environments)
 

@@ -16,10 +16,14 @@ class BaseRewards(ABC):
     # Reference to the game settings
     game_settings: GameSettings
 
-    def __init__(self, game_settings: GameSettings) -> None:
+    # Inner weight multiplier for the reward
+    weight: float
+
+    def __init__(self, game_settings: GameSettings, weight: float = 1) -> None:
         """Instantiate the base reward computation class"""
 
         self.game_settings = game_settings
+        self.weight = weight
 
     @abstractmethod
     def reward(self, environment: Environment, events: StepEvents) -> float:
@@ -35,3 +39,19 @@ class BaseRewards(ABC):
         return torch.tensor(
             [self.reward(env, event) for env, event in zip(environments, events)]
         )
+
+    @staticmethod
+    def all(
+        rewards: list["BaseRewards"],
+        environments: list[Environment],
+        events: list[StepEvents],
+    ):
+        """Accumulate rewards across environments and rewards."""
+
+        results = torch.zeros((len(environments), len(rewards)))
+
+        for i, reward in enumerate(rewards):
+            results[:, i] = reward.rewards(environments, events)
+
+        # Sum the different reward modules
+        return results.sum(dim=1)
