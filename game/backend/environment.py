@@ -10,7 +10,7 @@ from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.entities.player_entity import PlayerEntity
 from game.backend.game_settings import GameSettings
 from game.backend.physics.bounding_box import BoundingBox2D
-from game.backend.physics.math_utils import normalize
+from game.backend.physics.math_utils import normalize, direction_angle
 from game.backend.physics.physical_object import Object2D
 from game.backend.player_actions import PlayerAction
 from game.utils.lazy_remove import LazyRemove
@@ -246,12 +246,23 @@ class Environment:  # pylint: disable=too-many-instance-attributes
         This method should be called at every step.
         It has a probability of enemy_spawn_rate * step_seconds to spawn an enemy.
         """
+
         probability = self.game_settings.enemy_spawn_rate * self.step_seconds
         if np.random.rand() < probability:
+            # Get the map edge point closest to the player
+            closest_pt = self.game_map.closest_edge_point(self.player.object.position)
+            distance_to_wall = np.linalg.norm(closest_pt - self.player.object.position)
 
-            # Generate a random angle to place the enemy
-            angle = np.random.rand() * 2 * np.pi
-            position = self.game_map.edge_position_from_center_angle(angle)
+            # Compute the angle from the map center to the closest point
+            angle_rad = direction_angle(closest_pt - self.game_map.center)
+
+            # Sample from a normal distribution with mean angle_rad and std deviation of pi/4, varying with distance
+            # to the wall
+            rand_angle = np.random.normal(
+                angle_rad, np.pi / 4 * distance_to_wall / self.game_map.half_size.min()
+            )
+
+            position = self.game_map.edge_position_from_center_angle(rand_angle)
             obj = Object2D.from_position(position)
             obj.size = self.game_settings.enemy_size
             self.enemy_entities.add(EnemyEntity(obj))
