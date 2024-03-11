@@ -39,6 +39,7 @@ class GameEnv(EnvBase):
         game_settings: GameSettings | None = None,
         rewards: BaseRewards | None = None,
         support_rendering: bool = False,
+        debug_window_settings: WindowSettings | None = None,
         device: DEVICE_TYPING = "cpu",
         batch_size: int = 1,
     ) -> None:
@@ -47,6 +48,7 @@ class GameEnv(EnvBase):
         :param game_settings: Game settings shared by all environments.
         :param rewards: Reward module to use for the training reward computations.
         :param support_rendering: Whether to support rendering or not.
+        :param debug_window_settings: Settings in order to render the game in real time for debugging.
         :param device: Device to use for the training (cpu or gpu).
         :param batch_size: Number of parallel environments.
         """
@@ -74,14 +76,25 @@ class GameEnv(EnvBase):
 
             # Initialize Pygame for off-screen rendering
             pygame.init()
-            pygame.display.set_mode((1, 1), pygame.NOFRAME)  # Tiny window, not shown
-            window_settings = WindowSettings()
-            self.surface = pygame.Surface(
-                (window_settings.width, window_settings.height)
-            )
+
+            if debug_window_settings is not None:
+                self.surface = pygame.display.set_mode(
+                    (debug_window_settings.width, debug_window_settings.height)
+                )
+            else:
+                pygame.display.set_mode(
+                    (0, 0), pygame.NOFRAME
+                )  # Tiny window, not shown
+                debug_window_settings = WindowSettings()
+                self.surface = pygame.Surface(
+                    (debug_window_settings.width, debug_window_settings.height)
+                )
+
             self.frames = []
 
-            converter = CoordinatesConverter(self.environments[0], window_settings)
+            converter = CoordinatesConverter(
+                self.environments[0], debug_window_settings
+            )
             self.renderer = Renderer(converter, game_settings, self.surface)
 
     def _reset(

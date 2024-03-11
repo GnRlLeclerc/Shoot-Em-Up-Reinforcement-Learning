@@ -69,7 +69,7 @@ class NeuralPolicy(nn.Module):
         if weights is not None:
             self.from_numpy(weights)
 
-        x = torch.relu(self.fc1(x))
+        x = torch.tanh(self.fc1(x))
         x = self.fc2(x)
 
         # Build the output tensor of size 7
@@ -106,3 +106,13 @@ class NeuralPolicy(nn.Module):
             offset += current_count
 
         return weights
+
+    def to_file(self, filename: str) -> None:
+        """Save the weights to a file"""
+        weights = self.to_numpy()
+        np.savetxt(filename, weights)
+
+    def from_file(self, filename: str) -> None:
+        """Load the weights from a file"""
+        weights = np.loadtxt(filename)
+        self.from_numpy(weights)
