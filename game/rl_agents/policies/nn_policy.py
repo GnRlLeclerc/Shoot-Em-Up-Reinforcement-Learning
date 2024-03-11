@@ -64,7 +64,8 @@ class NeuralPolicy(nn.Module):
 
         Activation:
         * The first 5 output parameters are probabilities, so we use a sigmoid activation.
-        * The last 2 output parameters are orientation predictions, so we use a tanh activation (-> [-1, 1]).
+        * The last 2 output parameters are orientation predictions (sine and cosine). We do not use activation,
+        as np.arctan2 will compute the ratio later.
         """
         if weights is not None:
             self.from_numpy(weights)
@@ -74,7 +75,7 @@ class NeuralPolicy(nn.Module):
 
         # Build the output tensor of size 7
         probas = torch.sigmoid(x[:5])
-        orientation = torch.tanh(x[5:7])
+        orientation = x[5:7]
 
         return torch.cat((probas, orientation), dim=0)
 

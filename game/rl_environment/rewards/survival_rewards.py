@@ -5,7 +5,7 @@ from game.backend.environment import Environment, StepEvents
 from game.rl_environment.rewards.base_rewards import BaseRewards
 
 
-class KillingRewards(BaseRewards):
+class SurvivalRewards(BaseRewards):
     """Reward the player for surviving.
     The output reward is within the range[-1, 0] in average
     """
