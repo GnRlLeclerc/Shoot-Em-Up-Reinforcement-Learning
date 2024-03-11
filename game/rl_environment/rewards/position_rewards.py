@@ -28,23 +28,26 @@ class PositionRewards(BaseRewards):
         if environment.done:
             return cum_reward
 
+        map_pos_prio = 0.7
+
         # Compute the minimum distance to all enemies
-        min_distance = self.game_settings.map_size
+        if len(environment.enemy_entities) > 0:
+            min_distance = self.game_settings.map_size
 
-        for entity in environment.enemy_entities:
-            distance = np.linalg.norm(
-                entity.object.position - environment.player.object.position
+            for entity in environment.enemy_entities:
+                distance = np.linalg.norm(
+                    entity.object.position - environment.player.object.position
+                )
+                min_distance = min(min_distance, distance)
+
+            # Scale the minimum distance for sigmoid input.
+            # Basically, the reward starts going down when the player is 20% of the map size away from an enemy
+            sigmoid_in = interval_map(
+                min_distance, 0, self.game_settings.map_size * 0.2, -4, 4
             )
-            min_distance = min(min_distance, distance)
 
-        # Scale the minimum distance for sigmoid input.
-        # Basically, the reward starts going down when the player is 20% of the map size away from an enemy
-        sigmoid_in = interval_map(
-            min_distance, 0, self.game_settings.map_size * 0.2, -4, 4
-        )
-
-        # Negative reward within the range [-1, 0]
-        cum_reward -= sigmoid(-sigmoid_in)
+            # Negative reward within the range [-1, 0]
+            cum_reward -= sigmoid(-sigmoid_in) * (1 - map_pos_prio)
 
         # Reward the player for staying close to the center of the map
         center_distance = (
@@ -55,6 +58,6 @@ class PositionRewards(BaseRewards):
         )
 
         # Positive reward within the range [0, 1]
-        cum_reward += 1 - center_distance
+        cum_reward += (1 - center_distance) * map_pos_prio
 
         return cum_reward * self.weight
