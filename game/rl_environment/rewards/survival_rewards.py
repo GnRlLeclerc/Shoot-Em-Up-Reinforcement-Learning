@@ -22,4 +22,4 @@ class KillingRewards(BaseRewards):
         if events["enemy_contact_count"] > 0:
             cum_reward -= events["enemy_contact_count"]
 
-        return cum_reward
+        return cum_reward * self.weight
