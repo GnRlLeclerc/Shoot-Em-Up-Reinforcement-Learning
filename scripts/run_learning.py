@@ -8,15 +8,24 @@ from game.rl_agents.evaluation.objective_function import ObjectiveFunction
 from game.rl_agents.policies.nn_policy import NeuralPolicy
 from game.rl_agents.transformers.fixed_transformer import FixedTransformer
 from game.rl_environment.game_env import GameEnv
-from game.rl_environment.rewards.default_rewards import DefaultRewards
+from game.rl_environment.rewards.look_at_rewards import LookAtRewards
+from game.rl_environment.rewards.position_rewards import PositionRewards
+
+# from game.rl_environment.rewards.default_rewards import DefaultRewards
 
 if __name__ == "__main__":
 
     MAX_ENEMIES_SEEN = 2  # The model will be aware of the 2 closest enemies
+    game_settings = GameSettings(player_health=-1, enemy_spawn_rate=0.5)
+
+    # Prepare rewards
+    rewards = [
+        LookAtRewards(game_settings, weight=1),
+        PositionRewards(game_settings, weight=2),
+    ]
 
     # Train with infinite health and high enemy spawn rate (average 2 by second)
-    game_settings = GameSettings(player_health=-1, enemy_spawn_rate=2)
-    rewards = DefaultRewards(game_settings)
+    # rewards = DefaultRewards(game_settings)
     environment = GameEnv(game_settings, rewards, support_rendering=True, batch_size=1)
     policy = NeuralPolicy(input_dim=6 + MAX_ENEMIES_SEEN * 5, hidden_dim=64)
     transformer = FixedTransformer(MAX_ENEMIES_SEEN)

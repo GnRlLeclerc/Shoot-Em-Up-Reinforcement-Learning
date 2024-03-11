@@ -1,10 +1,7 @@
 """A default class for computing rewards. Feel free to modify it as you like.
 """
 
-import numpy as np
-
 from game.backend.environment import Environment, StepEvents
-from game.backend.physics.math_utils import interval_map, sigmoid
 from game.rl_environment.rewards.base_rewards import BaseRewards
 
 
@@ -22,23 +19,15 @@ class DefaultRewards(BaseRewards):
         cum_reward = 0
 
         if events["enemy_shot_count"] > 0:
-            cum_reward += 10  # Set a VERY high reward when enemies are shot down
+            # Set a VERY high reward when enemies are shot down
+            cum_reward += 10 * events["enemy_shot_count"]
 
-        # Compute the minimum distance to all enemies
-        min_distance = self.game_settings.map_size
+        # Reward the player for shooting
+        if events["player_did_shoot"]:
+            cum_reward += 1
 
-        for entity in environment.enemy_entities:
-            distance = np.linalg.norm(
-                entity.object.position - environment.player.object.position
-            )
-            min_distance = min(min_distance, distance)
-
-        # Scale the minimum distance for sigmoid input.
-        # Basically, the reward starts going down when the player is 20% of the map size away from an enemy
-        sigmoid_in = interval_map(
-            min_distance, 0, self.game_settings.map_size * 0.2, -4, 4
-        )
-
-        cum_reward -= sigmoid(-sigmoid_in)
+        # Traumatize the player for getting hit
+        if events["enemy_contact_count"] > 0:
+            cum_reward -= 100 * events["enemy_contact_count"]
 
         return cum_reward
