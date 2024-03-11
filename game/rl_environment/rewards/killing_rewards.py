@@ -26,4 +26,4 @@ class KillingRewards(BaseRewards):
         if events["player_did_shoot"]:
             cum_reward += 0.1
 
-        return cum_reward
+        return cum_reward * self.weight
