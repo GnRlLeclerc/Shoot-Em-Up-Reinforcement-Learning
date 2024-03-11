@@ -104,7 +104,8 @@ class ObjectiveFunction:
 
                     # Step the environment
                     output = self.environment.step(action_tensordict)
-                    reward = output["next"]["reward"][0].item()
+                    tensordict_state = output["next"]
+                    reward = tensordict_state["reward"][0].item()
 
                     # Accumulate the reward
                     total_reward += reward
