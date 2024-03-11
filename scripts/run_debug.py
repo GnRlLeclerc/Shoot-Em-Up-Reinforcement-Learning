@@ -9,7 +9,6 @@ from game.rl_agents.evaluation.objective_function import ObjectiveFunction
 from game.rl_agents.policies.nn_policy import NeuralPolicy
 from game.rl_agents.transformers.fixed_transformer import FixedTransformer
 from game.rl_environment.game_env import GameEnv
-from game.rl_environment.rewards.default_rewards import DefaultRewards
 
 if __name__ == "__main__":
     # DEBUG SETTINGS
@@ -20,7 +19,7 @@ if __name__ == "__main__":
 
     # Train with infinite health and high enemy spawn rate (average 2 by second)
     game_settings = GameSettings(player_health=10, enemy_spawn_rate=2)
-    rewards = DefaultRewards(game_settings)
+    rewards = []
 
     # Build the game environment with debug settings
     environment = GameEnv(
