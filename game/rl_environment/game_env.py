@@ -83,7 +83,7 @@ class GameEnv(EnvBase):
                 )
             else:
                 pygame.display.set_mode(
-                    (0, 0), pygame.NOFRAME
+                    (1, 1), pygame.NOFRAME
                 )  # Tiny window, not shown
                 debug_window_settings = WindowSettings()
                 self.surface = pygame.Surface(

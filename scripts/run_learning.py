@@ -1,7 +1,6 @@
 """Run reinforcement learning models on the game environment"""
 
 import cma
-import numpy as np
 import setup  # pylint: disable=unused-import
 
 from game.backend.game_settings import GameSettings
@@ -40,9 +39,9 @@ if __name__ == "__main__":
 
     # Save the weights to a file
     weights = policy.to_numpy()
-    np.savetxt("weights.txt", weights)
+    policy.to_file("weights.txt")
 
     # Test the model and render to gif, but this time with player health at 1
     # A reference to this object is shared with the environment
-    game_settings.player_health = 1
+    game_settings.player_health = 10
     objective_function(weights, "result.gif")

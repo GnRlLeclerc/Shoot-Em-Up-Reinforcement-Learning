@@ -29,19 +29,19 @@ class FixedTransformer(BaseTransformer):
 
         output[:6] = batched_state["player_obs"][env_index]
 
-        enemy_count = batched_state["enemy_obs"].shape[1] // 5
+        enemy_count = batched_state["enemy_obs"].shape[1]
+
+        if enemy_count == 0:
+            return output
 
         player_position = batched_state["player_obs"][env_index][:2]
 
         # Compute the distances to the enemies (we will sort the indices by distance)
         indices = list(range(enemy_count))
-        distances = [
-            torch.norm(
-                player_position
-                - batched_state["enemy_obs"][env_index, i * 5 : i * 5 + 2]
-            )
-            for i in indices
-        ]
+
+        distances = torch.norm(
+            player_position - batched_state["enemy_obs"][env_index, :, 0:2], dim=1
+        )
 
         # Sort the indices by distance
         indices = [i for _, i in sorted(zip(distances, indices))]
@@ -49,7 +49,7 @@ class FixedTransformer(BaseTransformer):
         # Fill the output tensor with the closest enemies
         for i in range(min(self.max_enemies, enemy_count)):
             output[6 + i * 5 : 6 + (i + 1) * 5] = batched_state["enemy_obs"][
-                env_index, indices[i] * 5 : indices[i] * 5 + 5
+                env_index, indices[i]
             ]
 
         return output
