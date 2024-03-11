@@ -53,6 +53,7 @@ class Environment:  # pylint: disable=too-many-instance-attributes
     # Shooting cooldown in steps
     player_shoot_cooldown: int
     current_shot_cooldown: int
+    current_player_health: int
 
     # Game mechanism values
     step_seconds: float  # Simulation duration between steps
@@ -94,6 +95,7 @@ class Environment:  # pylint: disable=too-many-instance-attributes
             game_settings.player_shoot_delay / step_seconds
         )
         self.current_shot_cooldown = 0
+        self.current_player_health = game_settings.player_health
 
         self.init_player()
 
@@ -153,8 +155,13 @@ class Environment:  # pylint: disable=too-many-instance-attributes
             # Detect collisions with the player
             if self.player.object.collide(enemy.object):
                 events["enemy_contact_count"] += 1
-                self.done = True
-                break
+                self.current_player_health -= 1
+                self.enemy_deleter.schedule_remove(enemy)
+
+                # Do not check <= 0 in order to enable invincibility with negative health
+                if self.current_player_health == 0:
+                    self.done = True
+                    break
 
         self.enemy_deleter.apply_remove()
 
@@ -208,6 +215,7 @@ class Environment:  # pylint: disable=too-many-instance-attributes
         self.bullet_deleter.clear()
         self.done = False
         self.current_shot_cooldown = 0
+        self.current_player_health = self.game_settings.player_health
 
     def get_entity_counts(self) -> dict[EntityType, int]:
         """Returns the count of each entity type in the environment"""

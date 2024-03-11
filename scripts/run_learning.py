@@ -15,17 +15,18 @@ if __name__ == "__main__":
 
     MAX_ENEMIES_SEEN = 2  # The model will be aware of the 2 closest enemies
 
-    game_settings = GameSettings()
+    # Train with infinite health and high enemy spawn rate (average 2 by second)
+    game_settings = GameSettings(player_health=-1, enemy_spawn_rate=2)
     rewards = DefaultRewards(game_settings)
     environment = GameEnv(game_settings, rewards, support_rendering=True, batch_size=1)
-    policy = NeuralPolicy(input_dim=6 + MAX_ENEMIES_SEEN * 5, hidden_dim=21)
+    policy = NeuralPolicy(input_dim=6 + MAX_ENEMIES_SEEN * 5, hidden_dim=64)
     transformer = FixedTransformer(MAX_ENEMIES_SEEN)
     objective_function = ObjectiveFunction(
         environment,
         policy,
         transformer,
         num_episodes=1,
-        max_time_steps=500,
+        max_time_steps=900,  # 30 * 30 = 900 (30 seconds at 30 fps)
         minimize=True,
     )
 
@@ -41,5 +42,7 @@ if __name__ == "__main__":
     weights = policy.to_numpy()
     np.savetxt("weights.txt", weights)
 
-    # Test the model and render to gif
+    # Test the model and render to gif, but this time with player health at 1
+    # A reference to this object is shared with the environment
+    game_settings.player_health = 1
     objective_function(weights, "result.gif")

@@ -14,6 +14,8 @@ class GameSettings:
     # Player entity speed per second & size
     player_speed: float = 0.5
     player_size: float = 0.05
+    # Player health. Setting a negative number will make the player invincible
+    player_health: int = 1
 
     # Bullet entity speed per second & size
     bullet_speed: float = 1
