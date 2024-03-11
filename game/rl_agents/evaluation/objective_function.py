@@ -114,9 +114,16 @@ class ObjectiveFunction:
                         self.environment.render()
 
                     if debug:
+                        # Handle quit signals via the GUI
+                        for event in pg.event.get():
+                            if event.type == pg.QUIT:
+                                return average_rewards
+
+                        # Print debug info
                         print(f"Input {i}:", policy_state)
                         print(f"Output {i}:", action_tensor)
 
+                        # Render in real time
                         self.environment.render()
                         pg.display.flip()
                         clock.tick(30)
