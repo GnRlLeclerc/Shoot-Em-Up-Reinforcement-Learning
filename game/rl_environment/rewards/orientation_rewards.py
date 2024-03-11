@@ -9,7 +9,7 @@ from game.backend.physics.math_utils import normalize
 from game.rl_environment.rewards.base_rewards import BaseRewards
 
 
-class LookAtRewards(BaseRewards):
+class OrientationRewards(BaseRewards):
     """Rewards to train the agent to look at the closest enemy.
     The reward output is within the range [-1, 1].
     """
