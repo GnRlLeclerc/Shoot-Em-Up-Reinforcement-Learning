@@ -10,18 +10,22 @@ from game.rl_agents.transformers.fixed_transformer import FixedTransformer
 from game.rl_environment.game_env import GameEnv
 from game.rl_environment.rewards.orientation_rewards import OrientationRewards
 from game.rl_environment.rewards.position_rewards import PositionRewards
+from game.rl_environment.rewards.survival_rewards import SurvivalRewards
+from game.rl_environment.rewards.killing_rewards import KillingRewards
 
 # from game.rl_environment.rewards.default_rewards import DefaultRewards
 
 if __name__ == "__main__":
 
     MAX_ENEMIES_SEEN = 2  # The model will be aware of the 2 closest enemies
-    game_settings = GameSettings(player_health=-1, enemy_spawn_rate=0.5)
+    game_settings = GameSettings(player_health=-1, enemy_spawn_rate=1)
 
     # Prepare rewards
     rewards = [
         OrientationRewards(game_settings, weight=1),
         PositionRewards(game_settings, weight=2),
+        SurvivalRewards(game_settings, weight=100),
+        KillingRewards(game_settings, weight=10),
     ]
 
     # Train with infinite health and high enemy spawn rate (average 2 by second)
@@ -39,6 +43,7 @@ if __name__ == "__main__":
     )
 
     # Use cma for minimization
+    # policy.from_file("position_weights.txt")
     initial_weights = policy.to_numpy()
 
     # The objective function will be called with the weights as input
