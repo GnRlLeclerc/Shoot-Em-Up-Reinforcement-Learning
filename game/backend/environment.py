@@ -10,7 +10,7 @@ from game.backend.entities.enemy_entity import EnemyEntity
 from game.backend.entities.player_entity import PlayerEntity
 from game.backend.game_settings import GameSettings
 from game.backend.physics.bounding_box import BoundingBox2D
-from game.backend.physics.math_utils import normalize, direction_angle
+from game.backend.physics.math_utils import direction_angle, normalize
 from game.backend.physics.physical_object import Object2D
 from game.backend.player_actions import PlayerAction
 from game.utils.lazy_remove import LazyRemove
