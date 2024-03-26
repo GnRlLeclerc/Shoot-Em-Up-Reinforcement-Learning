@@ -6,3 +6,7 @@ __pycache__/
 
 # Ignore cma-es outputs
 outcmaes/
+
+# Ignore all weight and gif outputs
+*.txt
+*.gif

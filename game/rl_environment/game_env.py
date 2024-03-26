@@ -30,7 +30,7 @@ class GameEnv(EnvBase):
     # Rendering utils
     support_rendering: bool
     renderer: Renderer
-    frames: list[Image]  # Store generated frames
+    frames: list[Image.Image]  # Store generated frames
     surface: pygame.Surface
 
     def __init__(
