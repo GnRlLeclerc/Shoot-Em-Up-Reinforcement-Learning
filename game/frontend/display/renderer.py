@@ -8,7 +8,7 @@ from pygame import Rect, Surface, SurfaceType
 
 from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.entities.bullet_entity import BulletEntity
-from game.backend.entities.enemy_entity import EnemyEntity
+from game.backend.entities.enemy_entity import EnemyEntity, EnemyType
 from game.backend.entities.player_entity import PlayerEntity
 from game.backend.environment import Environment
 from game.backend.game_settings import GameSettings
@@ -39,6 +39,15 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
     bullet_size: float
     enemy_size: float
 
+    skeleton_sprites: list[Surface] = [
+        pygame.image.load(f"game/frontend/assets/skeleton/skeleton_animation{i+1}.png")
+        for i in range(12)
+    ]
+    slime_sprites: list[Surface] = [
+        pygame.image.load(f"game/frontend/assets/slime/slime_animation{i+1}.png")
+        for i in range(4)
+    ]
+
     def __init__(
         self,
         converter: CoordinatesConverter,
@@ -60,6 +69,20 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
         self.player_size = self.converter.to_screen_size(game_settings.player_size)
         self.enemy_size = self.converter.to_screen_size(game_settings.enemy_size)
         self.bullet_size = self.converter.to_screen_size(game_settings.bullet_size)
+
+        # Update the size of the sprites to match the enemy size
+        self.skeleton_sprites = [
+            pygame.transform.scale(
+                sprite, (int(self.enemy_size * 1.5), int(self.enemy_size * 1.5))
+            )
+            for sprite in self.skeleton_sprites
+        ]
+        self.slime_sprites = [
+            pygame.transform.scale(
+                sprite, (int(self.enemy_size * 1.5), int(self.enemy_size * 1.5))
+            )
+            for sprite in self.slime_sprites
+        ]
 
     def render_entity(self, entity: EntityBase) -> None:
         """Render an entity on screen.
@@ -104,6 +127,28 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
             self.converter.to_screen_coords(enemy.object.position, self.enemy_size),
             self.enemy_size,
         )
+
+        enemy_image: Surface
+        total_frames: int
+
+        if enemy.class_type == EnemyType.SKELETON:
+            enemy_image = self.skeleton_sprites[enemy.movement_frame]
+            total_frames = len(self.skeleton_sprites)
+        else:  # enemy.class_type == EnemyType.SLIME
+            enemy_image = self.slime_sprites[enemy.movement_frame]
+            total_frames = len(self.slime_sprites)
+
+        # Need to flip the image if the enemy is moving left
+        if enemy.object.velocity[0] < 0:
+            enemy_image = pygame.transform.flip(enemy_image, True, False)
+
+        position = (
+            self.converter.to_screen_coords(enemy.object.position, self.enemy_size)
+            - self.enemy_size * 0.5
+        )
+        self.screen.blit(enemy_image, position)
+        # Animate multiple frames
+        enemy.movement_frame = (enemy.movement_frame + 1) % total_frames
 
     def render_map(self) -> None:
         """Render the map background on screen."""

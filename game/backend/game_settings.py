@@ -11,6 +11,15 @@ class GameSettings:
     enemy_speed: float = 0.4
     enemy_size: float = 0.05
 
+    # TODO : Work on size of slime and fix the sprite position in the renderer
+
+    # Enemy Class specific settings
+    # Skeleton
+    skeleton_speed: float = 0.45
+
+    # Slime
+    slime_speed: float = 0.3
+
     # Player entity speed per second & size
     player_speed: float = 0.5
     player_size: float = 0.05
