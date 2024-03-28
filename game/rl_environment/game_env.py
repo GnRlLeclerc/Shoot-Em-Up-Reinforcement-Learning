@@ -212,31 +212,26 @@ class GameEnv(EnvBase):
     def observation_spec(self) -> CompositeSpec:
         """Defines the observation space specification of the environment."""
         player_obs_spec = BoundedTensorSpec(
-            shape=(6,),
+            shape=torch.Size((6,)),
             dtype=torch.float32,
             low=-float("inf"),
             high=float("inf"),
             device=self.device,
         )
-        # Assuming max_count is the maximum number of bullets or enemies you expect
-        max_count = 10  # Adjust this based on your game's specifics
+        max_count = 10  # TODO: in reality, this is dynamic and can change
         bullet_obs_spec = BoundedTensorSpec(
-            shape=(max_count, 5),
+            shape=torch.Size((max_count, 5)),
             dtype=torch.float32,
             low=-float("inf"),
             high=float("inf"),
             device=self.device,
         )
         enemy_obs_spec = BoundedTensorSpec(
-            shape=(max_count, 5),
+            shape=torch.Size((max_count, 5)),
             dtype=torch.float32,
             low=-float("inf"),
             high=float("inf"),
             device=self.device,
-        )
-
-        done_spec = TensorSpec(
-            shape=(1,), dtype=torch.bool, device=self.device, space=BinaryBox(1)
         )
 
         # Combine these into a composite spec if you're returning a dict-like observation
@@ -244,5 +239,38 @@ class GameEnv(EnvBase):
             player_obs=player_obs_spec,
             enemy_obs=enemy_obs_spec,
             bullet_obs=bullet_obs_spec,
-            done=done_spec,
         )
+
+    @property
+    def action_spec(self) -> BoundedTensorSpec:
+        """Defines the action space specification of the environment."""
+        return BoundedTensorSpec(
+            shape=torch.Size((7,)),
+            dtype=torch.float32,
+            low=-float("inf"),
+            high=float("inf"),
+            device=self.device,
+        )
+
+    @property
+    def done_spec(self) -> TensorSpec:
+        """Defines the done space specification of the environment."""
+        return TensorSpec(
+            shape=torch.Size((1,)),
+            dtype=torch.bool,
+            device=self.device,
+            space=BinaryBox(1),
+        )
+
+    @property
+    def input_spec(self) -> CompositeSpec:
+        """Defines the input space specification of the environment."""
+        return CompositeSpec(
+            observation=self.observation_spec,
+            action=self.action_spec,
+            reward=self.reward_spec,
+            full_done_spec=self.done_spec,
+            full_action_spec=self.action_spec,
+        )
+
+    # BUG: there are still things to fix,
