@@ -264,12 +264,15 @@ class Environment:  # pylint: disable=too-many-instance-attributes
 
             position = self.game_map.edge_position_from_center_angle(rand_angle)
             obj = Object2D.from_position(position)
-            obj.size = self.game_settings.enemy_size
-            # TODO : Add the spawn probability to game settings
-            skeleton = np.random.rand() < 0.5
-            if skeleton:
+
+            # Randomly choose between skeleton and slime
+            spawn_class_probability = np.random.rand()
+
+            if spawn_class_probability < self.game_settings.skeleton_spawn_probability:
+                obj.size = self.game_settings.skeleton_size
                 self.enemy_entities.add(EnemyEntity(obj, EnemyType.SKELETON))
             else:
+                obj.size = self.game_settings.slime_size
                 self.enemy_entities.add(EnemyEntity(obj, EnemyType.SLIME))
 
     def init_player(self) -> None:

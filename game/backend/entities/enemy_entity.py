@@ -25,7 +25,7 @@ class EnemyEntity(EntityBase):
         """Instantiates an enemy entity"""
         super().__init__(obj)
         if class_type is None:
-            self.class_type = EnemyType.SKELETON
+            self.class_type = EnemyType.SLIME
         else:
             self.class_type = class_type
 

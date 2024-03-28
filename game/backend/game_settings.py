@@ -18,9 +18,12 @@ class GameSettings:
     # Enemy Class specific settings
     # Skeleton
     skeleton_speed: float = 0.45
+    skeleton_spawn_probability: float = 0.2
+    skeleton_size = 0.06
 
     # Slime
     slime_speed: float = 0.3
+    slime_size = 0.04
 
     # Player entity speed per second & size
     player_speed: float = 0.5

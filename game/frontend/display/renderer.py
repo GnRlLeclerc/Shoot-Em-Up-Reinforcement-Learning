@@ -68,6 +68,8 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
 
         self.player_size = self.converter.to_screen_size(game_settings.player_size)
         self.enemy_size = self.converter.to_screen_size(game_settings.enemy_size)
+        self.skeleton_size = self.converter.to_screen_size(game_settings.skeleton_size)
+        self.slime_size = self.converter.to_screen_size(game_settings.slime_size)
         self.bullet_size = self.converter.to_screen_size(game_settings.bullet_size)
 
         # Update the size of the sprites to match the enemy size
@@ -120,33 +122,41 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
 
     def render_enemy(self, enemy: EnemyEntity) -> None:
         """Render an enemy entity on screen."""
-        # Draw a red circle
-        pygame.draw.circle(
-            self.screen,
-            Color.RED,
-            self.converter.to_screen_coords(enemy.object.position, self.enemy_size),
-            self.enemy_size,
-        )
 
-        enemy_image: Surface
-        total_frames: int
+        # Default values
+        enemy_image: Surface = pygame.Surface((0, 0))
+        enemy_size: float = self.enemy_size
+        total_frames: int = 0
+        image_length: int = 0
+        image_height: int = 0
 
         if enemy.class_type == EnemyType.SKELETON:
             enemy_image = self.skeleton_sprites[enemy.movement_frame]
             total_frames = len(self.skeleton_sprites)
-        else:  # enemy.class_type == EnemyType.SLIME
+            # Images have a specific aspect ratio so we need to adjust the position to center them
+            image_length = self.skeleton_sprites[0].get_width()
+            image_height = self.skeleton_sprites[0].get_height()
+            enemy_size = self.skeleton_size
+
+        else:
+            # elif enemy.class_type == EnemyType.SLIME:
             enemy_image = self.slime_sprites[enemy.movement_frame]
             total_frames = len(self.slime_sprites)
+            image_length = self.slime_sprites[0].get_width()
+            # I should have cropped the image better but this works as well
+            image_height = self.slime_sprites[0].get_height() + 10
+            enemy_size = self.slime_size
 
         # Need to flip the image if the enemy is moving left
         if enemy.object.velocity[0] < 0:
             enemy_image = pygame.transform.flip(enemy_image, True, False)
 
-        position = (
-            self.converter.to_screen_coords(enemy.object.position, self.enemy_size)
-            - self.enemy_size * 0.5
-        )
+        position = self.converter.to_screen_coords(
+            enemy.object.position, enemy_size
+        ) - (image_length / 2, image_height / 2)
+
         self.screen.blit(enemy_image, position)
+
         # Animate multiple frames
         enemy.movement_frame = (enemy.movement_frame + 1) % total_frames
 
