@@ -57,6 +57,7 @@ class Environment:  # pylint: disable=too-many-instance-attributes
 
     # Game mechanism values
     step_seconds: float  # Simulation duration between steps
+    time: int
 
     # Game map
     game_map: BoundingBox2D
@@ -83,6 +84,7 @@ class Environment:  # pylint: disable=too-many-instance-attributes
 
         self.step_seconds = step_seconds
         self.done = False
+        self.time = 0
 
         self.game_settings = game_settings
 
@@ -171,6 +173,9 @@ class Environment:  # pylint: disable=too-many-instance-attributes
         # Update shot cooldown
         if self.current_shot_cooldown > 0:
             self.current_shot_cooldown -= 1
+
+        # Increment the time
+        self.time += 1
 
         return events
 
