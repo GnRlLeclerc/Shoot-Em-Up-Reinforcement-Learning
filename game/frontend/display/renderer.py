@@ -48,6 +48,16 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
         for i in range(4)
     ]
 
+    player_moving_sprites: list[Surface] = [
+        pygame.image.load(f"game/frontend/assets/player/player_animation{i+1}.png")
+        for i in range(8)
+    ]
+
+    player_idle_sprites: list[Surface] = [
+        pygame.image.load(f"game/frontend/assets/player/player_idle{i+1}.png")
+        for i in range(2)
+    ]
+
     def __init__(
         self,
         converter: CoordinatesConverter,
@@ -75,15 +85,29 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
         # Update the size of the sprites to match the enemy size
         self.skeleton_sprites = [
             pygame.transform.scale(
-                sprite, (int(self.enemy_size * 1.5), int(self.enemy_size * 1.5))
+                sprite, (int(self.skeleton_size * 1.5), int(self.skeleton_size * 1.5))
             )
             for sprite in self.skeleton_sprites
         ]
         self.slime_sprites = [
             pygame.transform.scale(
-                sprite, (int(self.enemy_size * 1.5), int(self.enemy_size * 1.5))
+                sprite, (int(self.slime_size * 1.5), int(self.slime_size * 1.5))
             )
             for sprite in self.slime_sprites
+        ]
+
+        self.player_moving_sprites = [
+            pygame.transform.scale(
+                sprite, (int(self.player_size * 1.5), int(self.player_size * 1.5))
+            )
+            for sprite in self.player_moving_sprites
+        ]
+
+        self.player_idle_sprites = [
+            pygame.transform.scale(
+                sprite, (int(self.player_size * 1.5), int(self.player_size * 1.5))
+            )
+            for sprite in self.player_idle_sprites
         ]
 
     def render_entity(self, entity: EntityBase) -> None:
@@ -99,15 +123,23 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
         """Render the player entity on screen."""
         actual_size = self.converter.square_same_area(self.player_size)
 
-        draw_rotated_rect(
-            self.screen,
-            Color.BLUE,
-            Rect(
-                *self.converter.to_screen_coords(player.object.position, actual_size),
-                actual_size,
-                actual_size,
-            ),
-            player.deg_angle,
+        player_image = self.player_moving_sprites[player.movement_frame]
+        if player.object.velocity[0] < 0:
+            player_image = pygame.transform.flip(player_image, True, False)
+        if player.object.velocity[0] == 0 and player.object.velocity[1] == 0:
+            # Short idle animation
+            player_idle_frame = (
+                1 if player.movement_frame < len(self.player_moving_sprites) // 2 else 0
+            )
+            player_image = self.player_idle_sprites[player_idle_frame]
+            # flip the image if the cursor is on the left side to create an "aiming" effect
+            if player.deg_angle > 90 or player.deg_angle < -90:
+                player_image = pygame.transform.flip(player_image, True, False)
+
+        position = self.converter.to_screen_coords(player.object.position, actual_size)
+        self.screen.blit(player_image, position)
+        player.movement_frame = (player.movement_frame + 1) % len(
+            self.player_moving_sprites
         )
 
     def render_bullet(self, bullet: BulletEntity) -> None:

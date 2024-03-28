@@ -19,7 +19,7 @@ class GameSettings:
     # Skeleton
     skeleton_speed: float = 0.45
     skeleton_spawn_probability: float = 0.2
-    skeleton_size = 0.06
+    skeleton_size = 0.08
 
     # Slime
     slime_speed: float = 0.3
