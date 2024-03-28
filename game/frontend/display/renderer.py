@@ -4,7 +4,7 @@
 from typing import Callable
 
 import pygame
-from pygame import Rect, Surface, SurfaceType
+from pygame import Surface, SurfaceType
 
 from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.entities.bullet_entity import BulletEntity
@@ -14,7 +14,6 @@ from game.backend.environment import Environment
 from game.backend.game_settings import GameSettings
 from game.frontend.display.colors import Color
 from game.frontend.display.coordinates_converter import CoordinatesConverter
-from game.frontend.display.render_utils import draw_rotated_rect
 
 
 class Renderer:  # pylint: disable=too-many-instance-attributes
