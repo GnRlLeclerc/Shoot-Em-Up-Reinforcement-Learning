@@ -57,6 +57,8 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
         for i in range(2)
     ]
 
+    background_sprite = pygame.image.load("game/frontend/assets/background.jpg")
+
     def __init__(
         self,
         converter: CoordinatesConverter,
@@ -193,11 +195,24 @@ class Renderer:  # pylint: disable=too-many-instance-attributes
 
     def render_map(self) -> None:
         """Render the map background on screen."""
-        pygame.draw.rect(
-            self.screen,
-            Color.GREEN,
-            self.converter.map_rect,
-        )
+
+        background_height = self.background_sprite.get_height()
+        background_width = self.background_sprite.get_width()
+
+        for i in range(0, self.converter.map_rect[2], background_width):
+            for j in range(0, self.converter.map_rect[3], background_height):
+
+                # crop the image to fit the map if needed
+                background_image = self.background_sprite
+                if i + background_width > self.converter.map_rect[2]:
+                    background_image = self.background_sprite.subsurface(
+                        (0, 0, self.converter.map_rect[2] - i, background_height)
+                    )
+
+                self.screen.blit(
+                    background_image,
+                    (self.converter.map_rect[0] + i, self.converter.map_rect[1] + j),
+                )
 
     def render_all(self, environment: Environment) -> None:
         """Render all entities on screen."""
