@@ -75,6 +75,13 @@ python scripts/run_game.py
 
 You can control the player with the arrow keys. It will look in the direction of your mouse.
 
+### Note on TorchRL
+
+It is way easier to define a classic torch Gym-like environment and then use `torchrl's` converters to make it
+compatible. Trying to directly subclass `torchrl's` `EnvBase` class is a pain because of the way its internals are designed
+and the lack of existing examples. Our `GameEnv` class would need to be refactored this way before attempting to complete
+the `run_ppo.py` script for PPO training.
+
 ### Build tools
 This project uses [`Black`](https://pypi.org/project/black/) for code formatting, [`PyLint`](https://pypi.org/project/pylint/) 
 for linting and [`isort`](https://pypi.org/project/isort/) for import statements sorting.
