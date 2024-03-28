@@ -13,6 +13,10 @@ from game.backend.game_settings import GameSettings
 from game.backend.physics.math_utils import normalize_rad_angle
 from game.backend.player_actions import PlayerAction
 
+# Some useful constants
+PLAYER_SPAN = 6
+ENEMY_SPAN = 5
+
 
 class GameTensorConverter:
     """A converter class that helps transform game observations and states to tensors, and back."""

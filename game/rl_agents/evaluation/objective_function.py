@@ -98,7 +98,9 @@ class ObjectiveFunction:
             with torch.no_grad():  # The objective function evaluates and does not train
                 for i in range(self.max_time_steps):
                     # Compute the action
-                    policy_state = self.transformer.transform_state(tensordict_state, 0)
+                    policy_state = self.transformer.state_from_tensordict(
+                        tensordict_state, 0
+                    )
                     action_tensor = self.policy(policy_state, params)
                     action_tensordict = self.transformer.action_to_dict([action_tensor])
 
