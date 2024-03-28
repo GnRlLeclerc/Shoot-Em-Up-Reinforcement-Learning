@@ -5,6 +5,8 @@ import pygame
 import torch
 from PIL import Image
 from tensordict import TensorDict, TensorDictBase
+from torchrl.data import BoundedTensorSpec, CompositeSpec, TensorSpec
+from torchrl.data.tensor_specs import BinaryBox
 from torchrl.data.utils import DEVICE_TYPING
 from torchrl.envs import EnvBase
 
@@ -204,4 +206,43 @@ class GameEnv(EnvBase):
             duration=1 / self.environments[0].step_seconds,
             optimize=False,
             loop=0,
+        )
+
+    @property
+    def observation_spec(self) -> CompositeSpec:
+        """Defines the observation space specification of the environment."""
+        player_obs_spec = BoundedTensorSpec(
+            shape=(6,),
+            dtype=torch.float32,
+            low=-float("inf"),
+            high=float("inf"),
+            device=self.device,
+        )
+        # Assuming max_count is the maximum number of bullets or enemies you expect
+        max_count = 10  # Adjust this based on your game's specifics
+        bullet_obs_spec = BoundedTensorSpec(
+            shape=(max_count, 5),
+            dtype=torch.float32,
+            low=-float("inf"),
+            high=float("inf"),
+            device=self.device,
+        )
+        enemy_obs_spec = BoundedTensorSpec(
+            shape=(max_count, 5),
+            dtype=torch.float32,
+            low=-float("inf"),
+            high=float("inf"),
+            device=self.device,
+        )
+
+        done_spec = TensorSpec(
+            shape=(1,), dtype=torch.bool, device=self.device, space=BinaryBox(1)
+        )
+
+        # Combine these into a composite spec if you're returning a dict-like observation
+        return CompositeSpec(
+            player_obs=player_obs_spec,
+            enemy_obs=enemy_obs_spec,
+            bullet_obs=bullet_obs_spec,
+            done=done_spec,
         )
