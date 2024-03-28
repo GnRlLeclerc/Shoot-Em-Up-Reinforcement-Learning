@@ -1,6 +1,7 @@
 """Run reinforcement learning models on the game environment"""
 
 import cma
+import matplotlib.pyplot as plt
 import setup  # pylint: disable=unused-import
 
 from game.backend.game_settings import GameSettings
@@ -12,20 +13,21 @@ from game.rl_environment.rewards.killing_rewards import KillingRewards
 from game.rl_environment.rewards.orientation_rewards import OrientationRewards
 from game.rl_environment.rewards.position_rewards import PositionRewards
 from game.rl_environment.rewards.survival_rewards import SurvivalRewards
+from game.rl_environment.rewards.time_rewards import TimeRewards
 
 # from game.rl_environment.rewards.default_rewards import DefaultRewards
 
 if __name__ == "__main__":
-
     MAX_ENEMIES_SEEN = 2  # The model will be aware of the 2 closest enemies
     game_settings = GameSettings(player_health=-1, enemy_spawn_rate=1)
 
     # Prepare rewards
     rewards = [
-        OrientationRewards(game_settings, weight=1),
         PositionRewards(game_settings, weight=2),
+        OrientationRewards(game_settings, weight=1),
         SurvivalRewards(game_settings, weight=100),
         KillingRewards(game_settings, weight=10),
+        TimeRewards(game_settings, weight=0.001),
     ]
 
     # Train with infinite health and high enemy spawn rate (average 2 by second)
@@ -48,7 +50,7 @@ if __name__ == "__main__":
 
     # The objective function will be called with the weights as input
     x_optimal, es = cma.fmin2(
-        objective_function, x0=initial_weights, sigma0=10.0, options={"maxfevals": 1500}
+        objective_function, x0=initial_weights, sigma0=10.0, options={"maxfevals": 700}
     )
 
     # Save the weights to a file
@@ -57,5 +59,9 @@ if __name__ == "__main__":
 
     # Test the model and render to gif, but this time with player health at 1
     # A reference to this object is shared with the environment
-    game_settings.player_health = 10
-    objective_function(weights, "result.gif")
+    game_settings.player_health = 1
+    objective_function(weights, "aggressive_reward.gif")
+
+    es.logger.plot()
+    plt.rcParams["figure.figsize"] = (20, 10)
+    plt.savefig("cma_aggressive_reward.png", bbox_inches="tight")

@@ -48,6 +48,6 @@ if __name__ == "__main__":
 
     # Test the model and render to gif, but this time with player health at 1
     # A reference to this object is shared with the environment
-    game_settings.player_health = 10
+    game_settings.player_health = 1
     # Render in real time, but do not save the gif result
-    objective_function(weights, debug=True, render_to=None)
+    objective_function(weights, "debug.gif")
