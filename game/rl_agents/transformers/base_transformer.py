@@ -64,3 +64,8 @@ class BaseTransformer(ABC):
         ), "The actions tensor should be batched (1st dimension = batches, 2 dimension = actions)."
 
         return TensorDict({"actions": actions}, batch_size=actions.shape[0])
+
+    @property
+    @abstractmethod
+    def input_size(self) -> int:
+        """Return the size of the input tensor for the model."""

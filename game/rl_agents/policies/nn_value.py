@@ -17,7 +17,6 @@ from game.rl_agents.transformers.base_transformer import BaseTransformer
 
 class ValueFunction(nn.Module):
     """Value function neural network.
-    The input shape is automatically inferred from the first time the module is run.
     3 fully connected layers with tanh activation and a final linear layer with shape 1 are used.
     """
 
@@ -26,7 +25,11 @@ class ValueFunction(nn.Module):
     device: str
 
     def __init__(
-        self, transformer: BaseTransformer, hidden_size: int, device: str | None = None
+        self,
+        transformer: BaseTransformer,
+        input_size: int,
+        hidden_size: int,
+        device: str | None = None,
     ) -> None:
         """Initialize the value function module."""
         super().__init__()
@@ -37,7 +40,7 @@ class ValueFunction(nn.Module):
         if device is None:
             self.device = DEVICE
 
-        self.layer1 = nn.LazyLinear(hidden_size)
+        self.layer1 = nn.Linear(input_size, hidden_size)
         self.layer2 = nn.Linear(hidden_size, hidden_size)
         self.layer3 = nn.Linear(hidden_size, hidden_size)
         self.out_layer = nn.Linear(hidden_size, 1)
@@ -59,11 +62,14 @@ class ValueFunction(nn.Module):
 
 
 def build_value_module(
-    transformer: BaseTransformer, hidden_size: int, device: str | None = None
+    transformer: BaseTransformer,
+    input_size: int,
+    hidden_size: int,
+    device: str | None = None,
 ) -> ValueOperator:
     """Build a value function module that takes tensordicts as input"""
 
-    module = ValueFunction(transformer, hidden_size, device)
+    module = ValueFunction(transformer, input_size, hidden_size, device)
 
     return ValueOperator(
         module=module, in_keys=["player_obs", "enemy_obs", "bullet_obs"]

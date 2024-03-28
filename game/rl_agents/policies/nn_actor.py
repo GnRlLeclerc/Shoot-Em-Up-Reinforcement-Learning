@@ -17,7 +17,11 @@ class Actor(nn.Module):
     """NN Actor class for a PPO model."""
 
     def __init__(
-        self, transformer: BaseTransformer, hidden_size: int, device: str | None = None
+        self,
+        transformer: BaseTransformer,
+        input_size: int,
+        hidden_size: int,
+        device: str | None = None,
     ) -> None:
         """Initialize the PPO module."""
         super().__init__()
@@ -28,7 +32,7 @@ class Actor(nn.Module):
         if device is None:
             self.device = DEVICE
 
-        self.layer1 = nn.LazyLinear(hidden_size)
+        self.layer1 = nn.Linear(input_size, hidden_size)
         self.layer2 = nn.Linear(hidden_size, hidden_size)
         self.layer3 = nn.Linear(hidden_size, hidden_size)
         self.out_layer = nn.Linear(hidden_size, 7)
@@ -54,11 +58,14 @@ class Actor(nn.Module):
 
 
 def build_policy_module(
-    transformer: BaseTransformer, hidden_size: int, device: str | None = None
+    transformer: BaseTransformer,
+    input_size: int,
+    hidden_size: int,
+    device: str | None = None,
 ) -> TensorDictModule:
     """Build a PPO module that takes tensordicts as input"""
 
-    module = Actor(transformer, hidden_size, device)
+    module = Actor(transformer, input_size, hidden_size, device)
 
     return TensorDictModule(
         module,

@@ -80,3 +80,8 @@ class FixedTransformer(BaseTransformer):
                 ] = enemy_obs[indices[i]]
 
         return output
+
+    @property
+    def input_size(self) -> int:
+        """Return the size of the input tensor."""
+        return 6 + 5 * self.max_enemies

@@ -78,10 +78,15 @@ if __name__ == "__main__":
     environment = GameEnv(game_settings, rewards, support_rendering=True, batch_size=1)
 
     transformer = FixedTransformer(MAX_ENEMIES_SEEN)
-    value_module = build_value_module(transformer, hidden_size=64)
+    input_size = transformer.input_size
+    value_module = build_value_module(
+        transformer, input_size=input_size, hidden_size=64
+    )
 
     # Build the policy module
-    policy_module = build_policy_module(transformer, hidden_size=64)
+    policy_module = build_policy_module(
+        transformer, input_size=input_size, hidden_size=64
+    )
 
     # Step collector in order to fill the replay buffer
     collector = SyncDataCollector(
