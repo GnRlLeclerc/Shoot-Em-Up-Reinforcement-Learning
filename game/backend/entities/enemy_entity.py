@@ -1,7 +1,7 @@
 """The basic enemy entity"""
 
-from typing import TYPE_CHECKING
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from game.backend.entities.base_entity import EntityBase, EntityType
 from game.backend.physics.math_utils import normalize

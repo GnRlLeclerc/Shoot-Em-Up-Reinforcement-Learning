@@ -8,10 +8,10 @@ from game.rl_agents.evaluation.objective_function import ObjectiveFunction
 from game.rl_agents.policies.nn_policy import NeuralPolicy
 from game.rl_agents.transformers.fixed_transformer import FixedTransformer
 from game.rl_environment.game_env import GameEnv
+from game.rl_environment.rewards.killing_rewards import KillingRewards
 from game.rl_environment.rewards.orientation_rewards import OrientationRewards
 from game.rl_environment.rewards.position_rewards import PositionRewards
 from game.rl_environment.rewards.survival_rewards import SurvivalRewards
-from game.rl_environment.rewards.killing_rewards import KillingRewards
 
 # from game.rl_environment.rewards.default_rewards import DefaultRewards
 

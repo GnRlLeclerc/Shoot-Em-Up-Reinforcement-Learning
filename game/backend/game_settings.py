@@ -7,6 +7,8 @@ from dataclasses import dataclass
 class GameSettings:
     """Simple class to hold game settings"""
 
+    # pylint: disable=too-many-instance-attributes
+
     # Enemy entity speed per second & size
     enemy_speed: float = 0.4
     enemy_size: float = 0.05
