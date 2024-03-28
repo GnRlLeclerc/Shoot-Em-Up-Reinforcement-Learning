@@ -51,3 +51,10 @@ def interval_map(
 ) -> float | np.ndarray:
     """Map the input values from [in_min, in_max] to [out_min, out_max]"""
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
+
+def sorted_indices(array: np.ndarray) -> list[int]:
+    """Given an array of values, returns a list of sorted indices, where the first index points to the lowest value,
+    etc."""
+    indices = np.arange(0, len(array))
+    return [i for _, i in sorted(zip(array, indices))]

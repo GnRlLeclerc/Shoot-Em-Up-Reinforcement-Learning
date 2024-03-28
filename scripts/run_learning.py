@@ -9,6 +9,7 @@ from game.rl_agents.evaluation.objective_function import ObjectiveFunction
 from game.rl_agents.policies.nn_policy import NeuralPolicy
 from game.rl_agents.transformers.fixed_transformer import FixedTransformer
 from game.rl_environment.game_env import GameEnv
+from game.rl_environment.game_tensor_converter import ENEMY_SPAN, PLAYER_SPAN
 from game.rl_environment.rewards.killing_rewards import KillingRewards
 from game.rl_environment.rewards.orientation_rewards import OrientationRewards
 from game.rl_environment.rewards.position_rewards import PositionRewards
@@ -33,7 +34,9 @@ if __name__ == "__main__":
     # Train with infinite health and high enemy spawn rate (average 2 by second)
     # rewards = DefaultRewards(game_settings)
     environment = GameEnv(game_settings, rewards, support_rendering=True, batch_size=1)
-    policy = NeuralPolicy(input_dim=6 + MAX_ENEMIES_SEEN * 5, hidden_dim=64)
+    policy = NeuralPolicy(
+        input_dim=PLAYER_SPAN + MAX_ENEMIES_SEEN * ENEMY_SPAN, hidden_dim=64
+    )
     transformer = FixedTransformer(MAX_ENEMIES_SEEN)
     objective_function = ObjectiveFunction(
         environment,

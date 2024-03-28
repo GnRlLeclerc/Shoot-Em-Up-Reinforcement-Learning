@@ -3,11 +3,13 @@ A transformer implementation that puts together in a tensor the player state, an
 enemies to the player. The number of enemies to consider is fixed at construction. Data is padded with zeros.
 """
 
+import numpy as np
 import torch
-from tensordict import TensorDictBase
 from torch import Tensor
 
+from game.backend.physics.math_utils import sorted_indices
 from game.rl_agents.transformers.base_transformer import BaseTransformer
+from game.rl_environment.game_tensor_converter import ENEMY_SPAN, PLAYER_SPAN
 
 
 class FixedTransformer(BaseTransformer):
@@ -21,35 +23,65 @@ class FixedTransformer(BaseTransformer):
         """Instantiate a new fixed transformer that considers the n closest enemies to the player."""
         self.max_enemies = max_enemies
 
-    def transform_state(self, batched_state: TensorDictBase, env_index: int) -> Tensor:
+    def transform_state(
+        self,
+        player_obs: Tensor,
+        enemy_obs: Tensor,
+        bullet_obs: Tensor,  # pylint: disable=unused-argument
+    ) -> Tensor:
         """Transform the state tensordict to a model input tensor."""
 
-        # Player state of size 6 + n enemies of size 5 each
-        output = torch.zeros(6 + 5 * self.max_enemies)
+        # Detect batches
+        is_batched = player_obs.ndim > 1
+        batch_size = player_obs.shape[0] if is_batched else 1
 
-        output[:6] = batched_state["player_obs"][env_index]
+        if is_batched:
+            output = torch.zeros(batch_size, 6 + 5 * self.max_enemies)
+        else:
+            # Player state of size 6 + n enemies of size 5 each
+            output = torch.zeros(6 + 5 * self.max_enemies)
 
-        enemy_count = batched_state["enemy_obs"].shape[1]
+        output[..., :6] = player_obs
+
+        # NOTE: in a batched tensor, the enemy count dimension is shared by all.
+        enemy_count = enemy_obs.shape[-2]
 
         if enemy_count == 0:
             return output
 
-        player_position = batched_state["player_obs"][env_index][:2]
+        # Compute distances from player to ennemies
+        player_position = player_obs[..., 2]
+        # Ignore padding (count non-zero presence flags (index 4))
+        actual_enemy_count = np.count_nonzero(enemy_obs[..., 4], axis=-1)
 
         # Compute the distances to the enemies (we will sort the indices by distance)
-        indices = list(range(enemy_count))
+        distances = torch.norm(player_position - enemy_obs[..., 0:2], dim=-1)
 
-        distances = torch.norm(
-            player_position - batched_state["enemy_obs"][env_index, :, 0:2], dim=1
-        )
+        if is_batched:
+            for batch in range(batch_size):
+                enemy_count = actual_enemy_count[batch]
+                indices = sorted_indices(distances[batch, :enemy_count].numpy())
 
-        # Sort the indices by distance
-        indices = [i for _, i in sorted(zip(distances, indices))]
+                # Fill the output tensor with the closest enemies
+                for i in range(min(self.max_enemies, enemy_count)):
+                    output[
+                        batch,
+                        PLAYER_SPAN
+                        + i * ENEMY_SPAN : PLAYER_SPAN
+                        + (i + 1) * ENEMY_SPAN,
+                    ] = enemy_obs[batch, indices[i]]
 
-        # Fill the output tensor with the closest enemies
-        for i in range(min(self.max_enemies, enemy_count)):
-            output[6 + i * 5 : 6 + (i + 1) * 5] = batched_state["enemy_obs"][
-                env_index, indices[i]
-            ]
+        else:
+            indices = sorted_indices(distances[:actual_enemy_count].numpy())
+            # Fill the output tensor with the closest enemies
+            for i in range(min(self.max_enemies, actual_enemy_count)):
+                output[
+                    PLAYER_SPAN + i * ENEMY_SPAN : PLAYER_SPAN + (i + 1) * ENEMY_SPAN
+                ] = enemy_obs[indices[i]]
 
         return output
+
+    @property
+    def input_size(self) -> int:
+        """Return the size of the input tensor."""
+        return 6 + 5 * self.max_enemies

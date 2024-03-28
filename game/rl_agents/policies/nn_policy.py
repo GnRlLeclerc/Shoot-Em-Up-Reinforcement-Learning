@@ -21,7 +21,7 @@ import numpy as np
 import torch
 from torch import Tensor, nn
 
-DEVICE = Literal["cpu", "cuda"]
+DeviceType = Literal["cpu", "cuda"]
 
 
 class NeuralPolicy(nn.Module):
@@ -32,13 +32,13 @@ class NeuralPolicy(nn.Module):
     hidden_dim: int
     action_dim: int = 7
 
-    device: DEVICE
+    device: DeviceType
 
     # Weight shapes
     shapes: list[torch.Size]
     param_count: int  # Total flattened parameter count
 
-    def __init__(self, input_dim: int, hidden_dim: int, device: DEVICE = "cpu"):
+    def __init__(self, input_dim: int, hidden_dim: int, device: DeviceType = "cpu"):
         """Initialize the model"""
         super().__init__()
         self.input_dim = input_dim

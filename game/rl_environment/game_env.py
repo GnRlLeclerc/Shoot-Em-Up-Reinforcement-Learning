@@ -5,6 +5,9 @@ import pygame
 import torch
 from PIL import Image
 from tensordict import TensorDict, TensorDictBase
+
+# from torchrl.data import BoundedTensorSpec, CompositeSpec, TensorSpec
+# from torchrl.data.tensor_specs import BinaryBox
 from torchrl.data.utils import DEVICE_TYPING
 from torchrl.envs import EnvBase
 
@@ -205,3 +208,66 @@ class GameEnv(EnvBase):
             optimize=False,
             loop=0,
         )
+
+    #
+    # @property
+    # def full_action_spec(self) -> CompositeSpec:
+    #     """Get the full action spec for the environment."""
+    #     return CompositeSpec(
+    #         {
+    #             "actions": BoundedTensorSpec(
+    #                 shape=torch.Size((7,)),
+    #                 dtype=torch.float32,
+    #                 minimum=-1.0,
+    #                 maximum=1.0,
+    #             ),
+    #         }
+    #     )
+    #
+    # @property
+    # def full_done_spec(self) -> CompositeSpec:
+    #     """Get the full done spec for the environment."""
+    #     return CompositeSpec(
+    #         {
+    #             "done": BinaryBox(n=1),
+    #         }
+    #     )
+    #
+    # @property
+    # def full_observation_spec(self) -> CompositeSpec:
+    #     """Get the full observation spec for the environment."""
+    #     return CompositeSpec(
+    #         {
+    #             "player_obs": TensorSpec(
+    #                 shape=torch.Size((6,)), dtype=torch.float32, space=None
+    #             ),
+    #             "enemy_obs": TensorSpec(
+    #                 shape=torch.Size((None, 5)), dtype=torch.float32, space=None
+    #             ),
+    #             "bullet_obs": TensorSpec(
+    #                 shape=torch.Size((None, 5)), dtype=torch.float32, space=None
+    #             ),
+    #         }
+    #     )
+    #
+    # @property
+    # def full_reward_spec(self) -> CompositeSpec:
+    #     """Get the full reward spec for the environment."""
+    #     return CompositeSpec(
+    #         {
+    #             "reward": TensorSpec(
+    #                 shape=torch.Size(), dtype=torch.float32, space=None
+    #             ),
+    #         }
+    #     )
+    #
+    # @property
+    # def full_state_spec(self) -> CompositeSpec:
+    #     """Get the full state spec for the environment."""
+    #     return CompositeSpec(
+    #         {
+    #             **self.full_observation_spec,
+    #             **self.full_reward_spec,
+    #             **self.full_done_spec,
+    #         }
+    #     )
