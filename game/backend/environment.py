@@ -6,7 +6,7 @@ import numpy as np
 
 from game.backend.entities.base_entity import EntityType
 from game.backend.entities.bullet_entity import BulletEntity
-from game.backend.entities.enemy_entity import EnemyEntity
+from game.backend.entities.enemy_entity import EnemyEntity, EnemyType
 from game.backend.entities.player_entity import PlayerEntity
 from game.backend.game_settings import GameSettings
 from game.backend.physics.bounding_box import BoundingBox2D
@@ -264,8 +264,16 @@ class Environment:  # pylint: disable=too-many-instance-attributes
 
             position = self.game_map.edge_position_from_center_angle(rand_angle)
             obj = Object2D.from_position(position)
-            obj.size = self.game_settings.enemy_size
-            self.enemy_entities.add(EnemyEntity(obj))
+
+            # Randomly choose between skeleton and slime
+            spawn_class_probability = np.random.rand()
+
+            if spawn_class_probability < self.game_settings.skeleton_spawn_probability:
+                obj.size = self.game_settings.skeleton_size
+                self.enemy_entities.add(EnemyEntity(obj, EnemyType.SKELETON))
+            else:
+                obj.size = self.game_settings.slime_size
+                self.enemy_entities.add(EnemyEntity(obj, EnemyType.SLIME))
 
     def init_player(self) -> None:
         """Initialize the player position"""

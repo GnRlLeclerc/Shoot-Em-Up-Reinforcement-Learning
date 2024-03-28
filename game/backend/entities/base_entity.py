@@ -39,6 +39,8 @@ class EntityBase(ABC):
         else:
             self.object = obj
 
+        self.movement_frame: int = 0
+
     @property
     @abstractmethod
     def type(self) -> EntityType:
