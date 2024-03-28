@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import setup  # pylint: disable=unused-import
 import torch
+from tensordict.nn import ProbabilisticTensorDictSequential
 
 # Split output into scale and loc (basically, normal distros.) où est-ce qu'on convertit ça nous-mêmes ?
 # from tensordict.nn.distributions import NormalParamExtractor
@@ -14,7 +15,6 @@ from torchrl.data import LazyTensorStorage, ReplayBuffer, SamplerWithoutReplacem
 from torchrl.envs.utils import ExplorationType, set_exploration_type
 from torchrl.objectives import ClipPPOLoss
 from torchrl.objectives.value import GAE
-from tensordict.nn import ProbabilisticTensorDictSequential
 from tqdm import tqdm
 
 from game.backend.game_settings import GameSettings
